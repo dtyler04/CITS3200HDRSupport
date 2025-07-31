@@ -8,21 +8,21 @@ The HDR Support at Time of Need project centres around developing an enriched an
 
 ## Problem
 Not all HDR students are the same represent a diverse group of individuals with differing needs. Currently, HDR students recieve generic reminders and messages for support services, available resources and research training events. The areas in which HDR students differ include...
-        * Location (online or on-campus)
-        * Degree Type (Masters or PhD)
-        * Support Needs (personal wellbeing and/or academic support)
-        * Enrollment Status (part-time or full-time)
-        * Stage of candidature
+* Location (online or on-campus)
+* Degree Type (Masters or PhD)
+* Support Needs (personal wellbeing and/or academic support)
+* Enrollment Status (part-time or full-time)
+* Stage of candidature
 Due to messages and reminders not being suited to the specific needs of each HDR student, students recieve irrelevant information or may miss out on information specific to their requirements due to the mass of irrelevant information.
 
 ## Goals
-    * Develop a communications application for HDR students that is more personalised.
-    * Reduce the overload of information through delivering relevant and timely messages/reminders.
-    * Enhance HDR student engagament with available support resources that match their needs.
+* Develop a communications application for HDR students that is more personalised.
+* Reduce the overload of information through delivering relevant and timely messages/reminders.
+* Enhance HDR student engagament with available support resources that match their needs.
 
 ## Target Users
-    * Primary Users: HDR students.
-    * Secondary Users: University of Western Australia (UWA) Administration and support staff for HDR students.
+* Primary Users: HDR students.
+* Secondary Users: University of Western Australia (UWA) Administration and support staff for HDR students.
     
 ## Key Features of Application
 (TODO)
@@ -31,8 +31,8 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 (TODO)
 
 ## Client
- Name: Jo Edmonston
- Email: joanne.edmondston@uwa.edu.au
+ * Name: Jo Edmonston
+ * Email: joanne.edmondston@uwa.edu.au
 
 ## Development Team
 * Jordan Joseph (23332309@student.uwa.edu.au)
