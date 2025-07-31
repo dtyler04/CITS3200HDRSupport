@@ -1,7 +1,5 @@
-# CITS3200HDRSupport
-UWA CITS3200 Project
-
-## Project: HDR Support at Time of Need
+# Project: HDR Support at Time of Need
+University of Western Australia (UWA) Professional Computing (CITS3200) Project
 
 ## Overview
 The HDR Support at Time of Need project centres around developing an enriched and personal communication application for Higher Degree by Research (HDR) students at the University of Western Australia. The application will provide HDR students with custom reminders, messages and resources aimed to support their study based on their individual circumstances and needs.
