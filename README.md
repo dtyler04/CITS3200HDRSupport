@@ -43,7 +43,7 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * Nate Htut (23484347@student.uwa.edu.au)
 * Brandon Fong (24339304@student.uwa.edu.au)
 
-##License and Intellectual Property (IP)
+## License and Intellectual Property (IP)
 IP arrangements are open for discussion.
 
 **Last Updated** 31/07/2025
