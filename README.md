@@ -13,6 +13,7 @@ Not all HDR students are the same represent a diverse group of individuals with 
 * Support Needs (personal wellbeing and/or academic support)
 * Enrollment Status (part-time or full-time)
 * Stage of candidature
+
 Due to messages and reminders not being suited to the specific needs of each HDR student, students recieve irrelevant information or may miss out on information specific to their requirements due to the mass of irrelevant information.
 
 ## Goals
