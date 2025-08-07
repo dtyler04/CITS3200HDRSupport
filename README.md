@@ -24,7 +24,27 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * Secondary Users: University of Western Australia (UWA) Administration and support staff for HDR students.
     
 ## Key Features of Application
-(TODO)
+### 1. Personalised System for Communication
+        * Personalised reminders and messages need to be tailored to each students needs and circumstances.
+        * The messages need to be able to dynamically adapt to the parameters the student provides to the system. (degree type, support needs, enrollment status, stage of candidature and location).
+        * Messages and reminders should take into account and reflect based on student status. (i.e. If a student is part time then they will receive one message for every two weeks (double duration of full-time). In the case where a student takes annual leave then the system should suspend all messages and reminders until the end of that duration, however, if a student decides to suspend their degree then messages and reminders will still be pushed by the system to the user).
+        
+### 2. Management Portal for Students
+        * Profile Creation and User Registration (Seperate system from StudentConnect, so students will need to create brand new login details).
+        * Profile Editing: Students will need to manually update their enrollment status throughout their candidature.
+        * Reminder/Message History: past messages/reminders will be in a list or calander format for the user to be aware in a visually engaging way.
+        
+### 3. Administartion Dashboard
+        * Content Management System (CMS): this allows administrators to create and update message content. This will include both a text editor and access to a file explorer to attach any relevent files.
+        * Analytics: displays metrics such as total number of students, number of logged in users, number of clicks on certain pages, most frequently visited wellbeing resources.
+        * Student List: a list of students with information on each student can be accessed by administators.
+        
+### 4. Technical Considerations
+        * Web-based application: needs to scale well on desktop as well as mobile displays.
+        * Email based massage and reminder delivery.
+        * Project to be open-sourced.
+        
+(This section is to be updated and refined once we finalise $100 Requirements, and throughout development)
 
 ## Github Directory Structure
 (TODO)
@@ -45,7 +65,9 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * Nate Htut (23484347@student.uwa.edu.au)
 * Brandon Fong (24339304@student.uwa.edu.au)
 
-## License and Intellectual Property (IP)
-IP arrangements are open for discussion.
+## License and Intellectual Property
+Intellectual Property (IP) arrangements are open for discussion.
+* Decided to open source project.
 
-**Last Updated** 06 Aug 2025
+
+**Last Updated** 07 Aug 2025
