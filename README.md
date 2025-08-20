@@ -25,6 +25,7 @@ Due to messages and reminders not being suited to the specific needs of each HDR
     
 ## Key Features of Application
 ### 1. Personalised System for Communication
+* ($40)
 * Personalised reminders and messages need to be tailored to each students needs and circumstances.
 * The messages need to be able to dynamically adapt to the parameters the student provides to the system. (degree type, support needs, enrollment status, stage of candidature and location).
 * Messages and reminders should take into account and reflect based on student status. (i.e. If a student is part time then they will receive one message for every two weeks (double duration of full-time). In the case where a student takes annual leave then the system should suspend all messages and reminders until the end of that duration, however, if a student decides to suspend their degree then messages and reminders will still be pushed by the system to the user).
@@ -35,19 +36,46 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * Reminder/Message History: past messages/reminders will be in a list or calander format for the user to be aware in a visually engaging way.
         
 ### 3. Administartion Dashboard
+* ($30)
 * Content Management System (CMS): this allows administrators to create and update message content. This will include both a text editor and access to a file explorer to attach any relevent files.
 * Analytics: displays metrics such as total number of students, number of logged in users, number of clicks on certain pages, most frequently visited wellbeing resources.
 * Student List: a list of students with information on each student can be accessed by administators.
         
-### 4. Technical Considerations
-* Web-based application: needs to scale well on desktop as well as mobile displays.
-* Email based massage and reminder delivery.
-* Project to be open-sourced.
-        
-(This section is to be updated and refined once we finalise $100 Requirements, and throughout development)
+### 4. Past and New Message View
+* ($10)
+* User has the ability to view new messages and reminders or previous ones.
+* Messages and reminders will be sorted by date and the user can choose to view the messages and reminders by the day, the week or the month.
+* Messages and Reminders will be displayed in either a list view or a calander view based on user preference.
+
+### 5. Email-Based Reminder/Message System
+* ($5)
+* All messages and remidners will be sent through an MailChimp which is out bulk email delivery service of choice.
+
+### 6. Automatic Message/Reminder Scheduling
+* ($5)
+* Administrators will have the ability to schedule messages and reminders for future dates.
+* The scheduling logic will happen on the server Flask where it will laise with MailChimp to deliver messages and reminders according to the specified dates.
+
+### 7. Progression Status Bar/Timeline
+* ($5)
+* This is the progression status of an HDR students progress through their candidature.
+* This will take the form of a circular progress wheel or a horizontal progress bar.
+
+### 8. User Statistics Dashboard Showing Utilisation Through Visits
+* ($5)
+* This is a page within the administrator dashboard which has useful insights such as page visits, active users, login times and button clicks. This will allow HDR support staff to better cater messages and relevent support infomration to students based on their needs.
 
 ## Github Directory Structure
-(TODO)
+.
+├──Sprint_1_Tests
+│    ├──Test_A.py
+│    └──Test_C.py
+├──app
+├──static
+├──templates
+├──tests
+├──README.md
+└──requirements.text
 
 ## Client
  * Name: Jo Edmonston
@@ -66,8 +94,7 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * Brandon Fong (24339304@student.uwa.edu.au)
 
 ## License and Intellectual Property
-Intellectual Property (IP) arrangements are open for discussion.
-* Decided to open source project.
+This is an open-source project.
 
 
-**Last Updated** 07 Aug 2025
+**Last Updated** 20 Aug 2025
