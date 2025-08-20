@@ -66,16 +66,24 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * This is a page within the administrator dashboard which has useful insights such as page visits, active users, login times and button clicks. This will allow HDR support staff to better cater messages and relevent support infomration to students based on their needs.
 
 ## Github Directory Structure
+<pre>
 .
 ├──Sprint_1_Tests
 │    ├──Test_A.py
 │    └──Test_C.py
 ├──app
+│    └──forms.py
 ├──static
+│    └──style.css
 ├──templates
+│    ├──base.html
+│    ├──login.html
+│    ├──student_dashboard.html
+│    └──admin_dashboard.html
 ├──tests
 ├──README.md
 └──requirements.text
+</pre>
 
 ## Client
  * Name: Jo Edmonston
