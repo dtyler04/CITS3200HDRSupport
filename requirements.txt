@@ -1,7 +1,5 @@
-# Add your Flask and other dependencies here
 Flask
-flask_wtf
-wtforms
-wtforms.validators
-SQLalchemy
-Jinja
+Flask-WTF
+WTForms
+SQLAlchemy
+Jinja2
