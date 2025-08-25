@@ -17,6 +17,7 @@ env/
 
 # macOS files
 .DS_Store
+**/.DS_Store
 
 # Python egg files
 *.egg

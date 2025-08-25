@@ -1,13 +1,21 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from .config import Config 
 import os
 
-app = Flask(__name__)
+# Since ../templates and ../static/ are not child of ./app  
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
-# Configure the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy()
+app = Flask(__name__, 
+            template_folder=os.path.join(PROJECT_ROOT, 'templates'),
+            static_folder=os.path.join(PROJECT_ROOT, 'static')
+        )
+app.config.from_object(Config)
+db.init_app(app)
+with app.app_context(): 
+    from . import models
+    db.create_all()
 
-db = SQLAlchemy(app)
-
-from app import routes
+from . import routes 
