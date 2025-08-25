@@ -1,9 +1,22 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>GUIDE Login Page</title>
-    </head>
-    <body>
-        <h1>Login Page</h1>
-    </body>
-</html>
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h2 class="mb-4 text-center" style="color:#1E3A8A;">Login</h2>
+            <form>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Staff / Student ID</label>
+                    <input type="text" class="form-control" id="username" placeholder="University ID number">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn btn-hdr w-100">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
