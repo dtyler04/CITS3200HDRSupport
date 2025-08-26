@@ -1,16 +1,26 @@
 from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash
 import time
 
-@app.route("/", methods=["GET", "POST"])
-@app.route("/login", methods=["GET", "POST"])
-def login():	
+@app.get("/")
+def index():
+    return redirect(url_for("login_page"))
+
+@app.get("/login")
+def login_page():
     login_form = LoginForm()
     signup_form = StudentSignUpForm()
+    return render_template("login.html",
+                           login_form=login_form,
+                           signup_form=signup_form)
 
-    if request.method == "POST" and login_form.validate_on_submit():
+@app.post("/login")
+def login():	
+    login_form = LoginForm()
+
+    if login_form.validate_on_submit():
         user_id = login_form.user_id.data
         password = login_form.password.data
 
@@ -18,15 +28,11 @@ def login():
         if user and user.password == password:  
             flash("Login successful", "success")
             return redirect(url_for("student_dashboard"))
-        flash("Invalid username or password", "danger")
+    flash("Invalid username or password", "danger")
 
-    return render_template("login.html",
-                           login_form=login_form,
-                           signup_form=signup_form,
-                           show_tab="login")
+    return redirect(url_for("login_page"))
 
-
-@app.route("/signup", methods=["POST"])
+@app.post("/signup")
 def signup():
     signup_form = StudentSignUpForm()
 
@@ -49,35 +55,30 @@ def signup():
             enrollment_update = EnrollmentUpdate(
                 update_id = int(time.time()), # Need verifications
                 user_id = signup_form.user_id.data,
-                degree_code = signup_form.degree_code.data,
+                degreeCode = signup_form.degree_code.data,
                 location = signup_form.location.data,
                 initialisation = False, # Need verfications
                 study_mode = signup_form.enrollment_status.data,
                 current_week = 0, # Need verifications 
-                locaion = signup_form.location
             )
 
             enrollment = Enrollment(
                 degreeCode = signup_form.degree_code.data,
-                degree_type = signup_form.degree_type
+                degree_type = signup_form.degree_type.data
             )
 
-            try:
-                db.session.add(user)
-                db.session.add(enrollment_update)
-                db.session.add(enrollment)
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                print("DB ERROR:", e)
-                
-            return redirect(url_for("login"))
+            db.session.add(user)
+            db.session.add(enrollment_update)
+            db.session.add(enrollment)
+            db.session.commit()  
+            return redirect(url_for("login_page"))
 
     # Failed validation
+    login_form = LoginForm()
+    flash("Invalid or exist credentials!!!", "danger")
     return render_template("login.html",
-                           login_form=LoginForm(),
-                           signup_form=signup_form,
-                           show_tab="signup")
+                           login_form=login_form,
+                           signup_form=signup_form)
 
 @app.route("/student-dashboard", methods=["GET"])
 def student_dashboard():         
