@@ -3,7 +3,7 @@
 ## 🎨 Colour Palette
 
 **Primary:**  
-- Deep Blue (#1E3A8A) — trust, stability, academia.
+- Deep Blue (#27348B) — trust, stability, academia.
 
 **Secondary:**  
 - Teal (#0D9488) — refreshing, balanced, highlights action buttons/navigation.

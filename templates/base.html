@@ -8,55 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Schuss Slab Pro font stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='fonts/SchussSlabPro/stylesheet.css') }}">
-    <style>
-        body {
-            font-family: 'Schuss Slab Pro', serif;
-            font-weight: 500;
-        }
-    </style>
-    <style>
-        :root {
-            --uwa-blue: #27348B;
-            --uwa-gold: #E2B600;
-            --uwa-dark: #181A20; /* Almost black */
-            --uwa-light: #F9FAFB;
-        }
-        body {
-            background: linear-gradient(135deg, var(--uwa-light) 0%, #FFFFFF 100%);
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-            color: var(--uwa-dark);
-        }
-        .hdr-header {
-            background-color: var(--uwa-blue);
-            color: #fff;
-            padding: 1rem 0;
-            text-align: center;
-            margin-bottom: 2rem;
-            border-radius: 0 0 8px 8px;
-        }
-        .hdr-header h1 {
-            color: #fff;
-            transition: color 0.3s;
-        }
-        .card {
-            box-shadow: 0 2px 8px rgba(39, 52, 139, 0.08);
-            border: none;
-        }
-        .btn-hdr {
-            background-color: var(--uwa-gold);
-            color: var(--uwa-dark);
-            border: none;
-            font-weight: 600;
-        }
-        .btn-hdr:hover {
-            background-color: var(--uwa-blue);
-            color: #fff;
-        }
-        .form-label {
-            color: var(--uwa-dark);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="hdr-header text-center d-flex justify-content-between align-items-center px-4">
