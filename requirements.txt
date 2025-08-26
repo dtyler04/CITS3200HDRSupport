@@ -4,3 +4,4 @@ flask_wtf
 wtforms
 wtforms.validators
 flask_sqlalchemy
+email-validator
