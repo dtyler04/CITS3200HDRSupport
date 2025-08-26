@@ -6,7 +6,7 @@
     <!-- Login Space -->
     <div id="login-form" style="display: block;">
         <h1>Login</h1>
-        <form method="post">
+        <form method="post" action = "{{ url_for('login') }}">
             {{ login_form.hidden_tag() }}
             {{ login_form.user_id.label }} {{ login_form.user_id }}
             {{ login_form.password.label }} {{ login_form.password }}
@@ -18,7 +18,7 @@
     <!-- Sign up Space -->
     <div id="signup-form" style="display: none;">  
         <h2>Sign Up</h2>
-        <form method="post">
+        <form method="post" action = "{{ url_for('signup') }}" >
             {{ signup_form.hidden_tag() }}
             {{ signup_form.user_id.label }} {{ signup_form.user_id }}
             {{ signup_form.first_name.label }} {{ signup_form.first_name }}
