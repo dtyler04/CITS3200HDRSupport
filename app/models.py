@@ -10,6 +10,7 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
 
     rights = db.relationship('Right', backref='user', lazy=True)
     updates = db.relationship('EnrollmentUpdate', backref='user', lazy=True)
@@ -32,6 +33,7 @@ class EnrollmentUpdate(db.Model):
     initialisation = db.Column(db.Boolean, nullable=False)
     study_mode = db.Column(db.String, nullable=False)
     current_week = db.Column(db.Integer, nullable=False)
+    location = db.Column(db.String, nullable=False)
 class Enrollment(db.Model):
     __tablename__ = 'Enrollments'
     degreeCode = db.Column(db.String(8), primary_key=True)
