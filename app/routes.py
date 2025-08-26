@@ -12,9 +12,13 @@ def index():
 def login_page():
     login_form = LoginForm()
     signup_form = StudentSignUpForm()
-    return render_template("login.html",
-                           login_form=login_form,
-                           signup_form=signup_form)
+    return render_template("login.html", login_form=login_form)
+
+@app.get("/signup")
+def sign_up():
+    signup_form = StudentSignUpForm()
+    return render_template("signup.html", signup_form=signup_form)
+
 
 @app.post("/login")
 def login():	
@@ -74,11 +78,8 @@ def signup():
             return redirect(url_for("login_page"))
 
     # Failed validation
-    login_form = LoginForm()
-    flash("Invalid or exist credentials!!!", "danger")
-    return render_template("login.html",
-                           login_form=login_form,
-                           signup_form=signup_form)
+    flash("Invalid or existing credentials!", "danger")
+    return render_template("signup.html", signup_form=signup_form)
 
 @app.route("/student-dashboard", methods=["GET"])
 def student_dashboard():         
