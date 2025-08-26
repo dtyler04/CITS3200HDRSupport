@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Welcome Page{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h1 class="mb-4">Welcome Page</h1>
+        <h2 class="mb-4">What is GUIDE?</h2>
+        <p>
+            Students enrolled in a higher degree by research (HDR) at UWA are a diverse group, including PhD and Masters students who can commence at any time, switch between full-time and part-time, suspend studies, take annual leave, and study on or off campus. Some may seek support for neurodiversity and wellbeing.
+        </p>
+        <p>
+            Currently, notifications about research training events, resources, and support are sent to all students, but are not tailored to individual needs. Ideally, communication should consider each student's course, stage of candidature, FT/PT status, location, and optional information about neurodiversity and wellbeing.
+        </p>
+        <div>
+        <p>Hence Group 19 has been tasked with creating: <strong>GUIDE</strong></p>
+        <p><strong>G</strong>raduate</p>
+        <p><strong>U</strong>pdates</p>
+        <p><strong>I</strong>nsights</p>
+        <p><strong>D</strong>eadlines and</p>
+        <p><strong>E</strong>ngagement</p>
+        </div>
+        
+        <p>
+            This app aims to let students input these parameters so communications and reminders are sent at the right time in their studies. We have developed a bank of messages for the first year (full-time equivalent) for doctoral and masters students, with flexibility to update messages as policies and processes change.
+        </p>
+        <ul>
+            <li>~350 students enroll every year</li>
+            <li>Can commence on any day of year</li>
+            <li>Can enroll part-time or full-time (and change at any time)</li>
+            <li>PhD (4 years – 85% students) or Masters (2 years) with different key study dates</li>
+            <li>On campus or off campus</li>
+            <li>Can suspend studies for up to 1 year and take 4 weeks annual leave at any time</li>
+        </ul>
+        <h3>Research Training</h3>
+        <ul>
+            <li>Wide range of online resources and in-person events</li>
+            <li>Resources in LMS arranged by stage of study</li>
+            <li>Events promoted in research training flyer</li>
+            <li>Registration through event calendar</li>
+        </ul>
+        <h3>Problem</h3>
+        <p>Blanket notifications of events/resources do not meet individual student needs.</p>
+        <h3>Aim</h3>
+        <p>Develop a mechanism to send tailored messages to students at the appropriate time in their studies.</p>
+        <h3>Messages / Advice at Time of Need</h3>
+        <ul>
+            <li>Students opt-in to receive messages</li>
+            <li>1 message about relevant training every week (full-time equivalent)</li>
+            <li>52 sample messages developed, with flexibility for regular updates</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+{% block header_button %}
+    <a href="{{ url_for('login') }}" class="btn btn-hdr ms-auto">Login</a>
+{% endblock %}

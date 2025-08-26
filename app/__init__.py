@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from .config import Config 
 import os
 
-# Since ../templates and ../static/ are not child of ./app  
+# Since Templates and static arent part of app, this code says to look in Base_dir
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
@@ -13,9 +13,10 @@ app = Flask(__name__,
             static_folder=os.path.join(PROJECT_ROOT, 'static')
         )
 app.config.from_object(Config)
+app.config['DEBUG'] = True
 db.init_app(app)
 with app.app_context(): 
     from . import models
     db.create_all()
 
-from . import routes 
+from . import routes

@@ -1,6 +1,7 @@
 # models.py
 # Define your database models here
 
+
 from app import db
 
 class User(db.Model):

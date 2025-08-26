@@ -3,41 +3,30 @@
 {% block title %} Login Page {% endblock %}
 
 {% block content %}
-    <!-- Login Space -->
-    <div id="login-form" style="display: block;">
-        <h1>Login</h1>
-        <form method="post" action = "{{ url_for('login') }}">
-            {{ login_form.hidden_tag() }}
-            {{ login_form.user_id.label }} {{ login_form.user_id }}
-            {{ login_form.password.label }} {{ login_form.password }}
-            {{ login_form.submit }}
-        </form>
-        <p>Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
+    <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card p-4 shadow">
+                <h2 class="mb-4 text-center" style="color:#27348B; font-weight: 700;">Login</h2>
+                <form method="post" action="{{ url_for('login') }}">
+                    {{ login_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ login_form.user_id.label(class_='form-label') }}
+                        {{ login_form.user_id(class_='form-control') }}
+                    </div>
+                    <div class="mb-3">
+                        {{ login_form.password.label(class_='form-label') }}
+                        {{ login_form.password(class_='form-control') }}
+                    </div>
+                    {{ login_form.submit(class_='btn btn-hdr w-100') }}
+                </form>
+                <p class="mt-3 text-center">
+                    Don't have an account?
+                    <a href="{{ url_for('signup') }}" class="btn btn-hdr" style="background-color: #27348B; color:white;">Sign Up</a>
+                </p>
+            </div>
+        </div>
     </div>
 
-    <!-- Sign up Space -->
-    <div id="signup-form" style="display: none;">  
-        <h2>Sign Up</h2>
-        <form method="post" action = "{{ url_for('signup') }}" >
-            {{ signup_form.hidden_tag() }}
-            {{ signup_form.user_id.label }} {{ signup_form.user_id }}
-            {{ signup_form.first_name.label }} {{ signup_form.first_name }}
-            {{ signup_form.last_name.label }} {{ signup_form.last_name }}
-            {{ signup_form.email.label }} {{ signup_form.email }}
-            {{ signup_form.password.label }} {{ signup_form.password }}
-            {{ signup_form.location.label }} {{ signup_form.location }}
-            {{ signup_form.degree_type.label }} {{ signup_form.degree_type }}
-            {{ signup_form.degree_code.label}} {{ signup_form.degree_code }}
-            {{ signup_form.support_needs.label }} {{ signup_form.support_needs }}
-            {{ signup_form.enrollment_status.label }} {{ signup_form.enrollment_status}}
-            {{ signup_form.stage.label }} {{ signup_form.stage }}
-            {{ signup_form.additional_info.label }} {{ signup_form.additional_info }}
-            {{ signup_form.submit }}
-        </form>
-        <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>  
-    </div>
+    
 {% endblock %}
 
-{% block scripts %}
-    <script type="text/javascript" src="{{ url_for('static', filename='LoginPage.js') }}"></script>
-{% endblock %}

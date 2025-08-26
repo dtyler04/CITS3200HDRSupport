@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %} Signup Page {% endblock %}
+
+{% block content %}
+
+<!-- Sign up Space -->
+    <div id="signup-form">
+        <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card p-4 shadow">
+                    <h2 class="mb-4 text-center" style="color:#27348B; font-weight: 700;">Sign Up</h2>
+                    <form method="post" action="{{ url_for('signup') }}">
+                        {{ signup_form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ signup_form.user_id.label(class_='form-label') }}
+                            {{ signup_form.user_id(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.first_name.label(class_='form-label') }}
+                            {{ signup_form.first_name(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.last_name.label(class_='form-label') }}
+                            {{ signup_form.last_name(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.email.label(class_='form-label') }}
+                            {{ signup_form.email(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.password.label(class_='form-label') }}
+                            {{ signup_form.password(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.location.label(class_='form-label') }}
+                            {{ signup_form.location(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.degree_type.label(class_='form-label') }}
+                            {{ signup_form.degree_type(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.degree_code.label(class_='form-label') }}
+                            {{ signup_form.degree_code(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.support_needs.label(class_='form-label') }}
+                            {{ signup_form.support_needs(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.enrollment_status.label(class_='form-label') }}
+                            {{ signup_form.enrollment_status(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.stage.label(class_='form-label') }}
+                            {{ signup_form.stage(class_='form-control') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ signup_form.additional_info.label(class_='form-label') }}
+                            {{ signup_form.additional_info(class_='form-control') }}
+                        </div>
+                        {{ signup_form.submit(class_='btn btn-hdr w-100') }}
+                    </form>
+                    <p class="mt-3 text-center">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}" class="btn btn-hdr" style="background-color: #27348B; color: white;">Login</a>
+                </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
