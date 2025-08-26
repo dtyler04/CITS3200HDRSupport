@@ -1,0 +1,120 @@
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-Regular.eot');
+    src: local('Schuss Slab Pro Regular'), local('SchussSlabPro-Regular'),
+        url('SchussSlabPro-Regular.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-Regular.woff2') format('woff2'),
+        url('SchussSlabPro-Regular.woff') format('woff'),
+        url('SchussSlabPro-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-Medium.eot');
+    src: local('Schuss Slab Pro Medium'), local('SchussSlabPro-Medium'),
+        url('SchussSlabPro-Medium.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-Medium.woff2') format('woff2'),
+        url('SchussSlabPro-Medium.woff') format('woff'),
+        url('SchussSlabPro-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-Bold.eot');
+    src: local('Schuss Slab Pro Bold'), local('SchussSlabPro-Bold'),
+        url('SchussSlabPro-Bold.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-Bold.woff2') format('woff2'),
+        url('SchussSlabPro-Bold.woff') format('woff'),
+        url('SchussSlabPro-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-LightItalic.eot');
+    src: local('Schuss Slab Pro Light Italic'), local('SchussSlabPro-LightItalic'),
+        url('SchussSlabPro-LightItalic.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-LightItalic.woff2') format('woff2'),
+        url('SchussSlabPro-LightItalic.woff') format('woff'),
+        url('SchussSlabPro-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-Heavy.eot');
+    src: local('Schuss Slab Pro Heavy'), local('SchussSlabPro-Heavy'),
+        url('SchussSlabPro-Heavy.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-Heavy.woff2') format('woff2'),
+        url('SchussSlabPro-Heavy.woff') format('woff'),
+        url('SchussSlabPro-Heavy.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-Light.eot');
+    src: local('Schuss Slab Pro Light'), local('SchussSlabPro-Light'),
+        url('SchussSlabPro-Light.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-Light.woff2') format('woff2'),
+        url('SchussSlabPro-Light.woff') format('woff'),
+        url('SchussSlabPro-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-BoldItalic.eot');
+    src: local('Schuss Slab Pro Bold Italic'), local('SchussSlabPro-BoldItalic'),
+        url('SchussSlabPro-BoldItalic.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-BoldItalic.woff2') format('woff2'),
+        url('SchussSlabPro-BoldItalic.woff') format('woff'),
+        url('SchussSlabPro-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-MediumItalic.eot');
+    src: local('Schuss Slab Pro Medium Italic'), local('SchussSlabPro-MediumItalic'),
+        url('SchussSlabPro-MediumItalic.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-MediumItalic.woff2') format('woff2'),
+        url('SchussSlabPro-MediumItalic.woff') format('woff'),
+        url('SchussSlabPro-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-Italic.eot');
+    src: local('Schuss Slab Pro Italic'), local('SchussSlabPro-Italic'),
+        url('SchussSlabPro-Italic.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-Italic.woff2') format('woff2'),
+        url('SchussSlabPro-Italic.woff') format('woff'),
+        url('SchussSlabPro-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Schuss Slab Pro';
+    src: url('SchussSlabPro-HeavyItalic.eot');
+    src: local('Schuss Slab Pro Heavy Italic'), local('SchussSlabPro-HeavyItalic'),
+        url('SchussSlabPro-HeavyItalic.eot?#iefix') format('embedded-opentype'),
+        url('SchussSlabPro-HeavyItalic.woff2') format('woff2'),
+        url('SchussSlabPro-HeavyItalic.woff') format('woff'),
+        url('SchussSlabPro-HeavyItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
