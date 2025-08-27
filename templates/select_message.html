@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Select Message{% endblock %}
+{% block content %}
+<h2>Select a Message to Edit</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Degree Code</th>
+            <th>Week Released</th>
+            <th>Preview</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for message in messages %}
+        <tr>
+            <td>{{ message.message_id }}</td>
+            <td>{{ message.degreeCode }}</td>
+            <td>{{ message.week_released }}</td>
+            <td>{{ message.content[:50] }}...</td>
+            <td>
+                <a href="{{ url_for('email_editor', message_id=message.message_id) }}" class="btn btn-primary">Edit</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

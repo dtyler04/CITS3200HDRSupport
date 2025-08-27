@@ -1,3 +1,4 @@
+
 from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
@@ -85,13 +86,55 @@ def signup():
 def student_dashboard():         
     return render_template("student_dashboard.html")
 
-@app.route("/admin-dashboard", methods=["GET", "POST"])
+
+@app.get("/admin-dashboard")
 def admin_dashboard():
+    return render_template("admin_dashboard.html")
+
+@app.post("/admin-dashboard")
+def admin_dashboard_post():
     if request.method == "POST":
-        # You can add message saving logic here if needed
         flash("Message updated!", "success")
         message_content = request.form["message"]
+
+
+@app.post("/email-editor")
+def save_email_message():
+    message_id = request.form.get("message_id")
+    content = request.form.get("message_content")
+    if message_id:
+        # Update existing message
+        message = Message.query.get(message_id)
+        if message:
+            message.content = content
+            db.session.commit()
+            flash("Message updated!", "success")
+        else:
+            flash("Message not found.", "danger")
     else:
-        # Always load empty editor on GET
-        message_content = ""
-    return render_template("admin_dashboard.html", message_content=message_content)
+        # Create new message
+        degreeCode = request.form.get("degreeCode")
+        week_released = request.form.get("week_released")
+        if degreeCode and week_released:
+            new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
+            db.session.add(new_message)
+            db.session.commit()
+            flash("New message created!", "success")
+        else:
+            flash("Degree code and week are required for new messages.", "danger")
+    return redirect(url_for("email_editor"))
+
+@app.get("/messages/select")
+def select_message():
+    messages = Message.query.order_by(Message.week_released.asc()).all()
+    return render_template("select_message.html", messages=messages)
+
+@app.get("/email-editor")
+def email_editor():
+    message_id = request.args.get("message_id")
+    message_content = ""
+    if message_id:
+        message = Message.query.get(message_id)
+        if message:
+            message_content = message.content
+    return render_template("email_editor.html", message_content=message_content)
