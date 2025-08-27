@@ -1,7 +1,7 @@
 from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash, request
 import time
 
 @app.get("/")
@@ -84,3 +84,14 @@ def signup():
 @app.route("/student-dashboard", methods=["GET"])
 def student_dashboard():         
     return render_template("student_dashboard.html")
+
+@app.route("/admin-dashboard", methods=["GET", "POST"])
+def admin_dashboard():
+    if request.method == "POST":
+        # You can add message saving logic here if needed
+        flash("Message updated!", "success")
+        message_content = request.form["message"]
+    else:
+        # Always load empty editor on GET
+        message_content = ""
+    return render_template("admin_dashboard.html", message_content=message_content)

@@ -5,6 +5,16 @@
     <div class="col">
         <h1 class="mb-4">Admin Dashboard</h1>
         <!-- Dashboard content here -->
+        <!--
+        <form method="post" action="{{ url_for('edit_message') }}">
+            <textarea name="message" id="editor">{{ message_content|safe }}</textarea>
+            <button type="submit" class="btn btn-hdr mt-3">Save</button>
+        </form>
+        -->
+        <script src="https://cdn.ckeditor.com/4.21.0/standard/ckeditor.js"></script>
+        <script>
+            CKEDITOR.replace('editor');
+        </script>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
