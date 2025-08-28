@@ -21,13 +21,12 @@ def index():
 
 @app.get("/logout")
 def logout():
-    session.clear()
+    session.pop("uid", None)
     flash("Logged out.", "info")
     return redirect(url_for("login_page"))
 
 @app.get("/login")
 def login_page():
-    session.clear()
     login_form = LoginForm()
     return render_template("login.html", login_form=login_form)
 
@@ -66,6 +65,10 @@ def signup():
         if User.query.filter_by(email=signup_form.email.data).first():
             signup_form.email.errors.append("Email already registered.")
 
+        '''
+        Future checks for degree code existence
+        '''
+        
         if not (signup_form.user_id.errors or signup_form.email.errors):
             user = User(
                 user_id = signup_form.user_id.data,
@@ -85,14 +88,8 @@ def signup():
                 current_week = 0, # Need verifications 
             )
 
-            enrollment = Enrollment(
-                degreeCode = signup_form.degree_code.data,
-                degree_type = signup_form.degree_type.data
-            )
-
             db.session.add(user)
             db.session.add(enrollment_update)
-            db.session.add(enrollment)
             db.session.commit()  
             flash("Account created successfully. You can log in now.", "success")
             return redirect(url_for("login_page"))
