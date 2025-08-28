@@ -19,7 +19,7 @@ def login_required(func):
 
 @app.get("/")
 def index():
-    return redirect(url_for("login_page"))
+    return render_template("welcome.html")
 
 @app.get("/logout")
 def logout():
