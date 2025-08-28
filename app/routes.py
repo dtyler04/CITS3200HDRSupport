@@ -1,10 +1,12 @@
 from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
-from flask import render_template, redirect, url_for, flash, session
+from flask import render_template, redirect, url_for, flash, session, request
 from werkzeug.security import generate_password_hash, check_password_hash
 import time
 from functools import wraps #decorators behave
+from flask_wtf.csrf import generate_csrf
+
 
 def login_required(func):
     @wraps(func)
@@ -17,7 +19,7 @@ def login_required(func):
 
 @app.get("/")
 def index():
-    return redirect(url_for("login_page"))
+    return render_template("welcome.html")
 
 @app.get("/logout")
 def logout():
@@ -103,3 +105,60 @@ def signup():
 @login_required
 def student_dashboard():     
     return render_template("student_dashboard.html")
+
+
+@app.get("/admin-dashboard")
+def admin_dashboard():
+    return render_template("admin_dashboard.html", csrf_token=generate_csrf())
+
+@app.post("/admin-dashboard")
+def admin_dashboard_post():
+    if request.method == "POST":
+        flash("Message updated!", "success")
+        message_content = request.form["message"]
+
+
+@app.post("/email-editor")
+def save_email_message():
+    message_id = request.form.get("message_id")
+    content = request.form.get("message_content")
+    if message_id:
+        # Update existing message
+        message = Message.query.get(message_id)
+        if message:
+            message.content = content
+            db.session.commit()
+            flash("Message updated!", "success")
+        else:
+            flash("Message not found.", "danger")
+    else:
+        # Create new message
+        degreeCode = request.form.get("degreeCode")
+        week_released = request.form.get("week_released")
+        if degreeCode and week_released:
+            new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
+            db.session.add(new_message)
+            db.session.commit()
+            flash("New message created!", "success")
+        else:
+            flash("Degree code and week are required for new messages.", "danger")
+    return redirect(url_for("admin_dashboard"))
+
+@app.get("/messages/select")
+def select_message():
+
+    messages = Message.query.order_by(Message.week_released.asc()).all()
+    if not messages:
+        flash("No messages available. Please create a new message.", "info")
+        return redirect(url_for("admin_dashboard"))
+    return render_template("select_message.html", messages=messages)
+
+@app.get("/email-editor")
+def email_editor():
+    message_id = request.args.get("message_id")
+    message_content = ""
+    if message_id:
+        message = Message.query.get(message_id)
+        if message:
+            message_content = message.content
+    return render_template("email_editor.html", message_content=message_content)

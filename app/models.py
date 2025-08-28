@@ -29,7 +29,7 @@ class EnrollmentUpdate(db.Model):
     __tablename__ = 'EnrollmentUpdates'
     update_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), nullable=False)
-    degreeCode = db.Column(db.String, db.ForeignKey('Enrollments.degreeCode'), nullable=False)
+    degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
     initialisation = db.Column(db.Boolean, nullable=False)
     study_mode = db.Column(db.String, nullable=False)
     current_week = db.Column(db.Integer, nullable=False)
@@ -45,7 +45,7 @@ class Message(db.Model):
     __tablename__ = 'Messages'
     message_id = db.Column(db.Integer, primary_key=True)
     degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
-    message_content = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=False)
     week_released = db.Column(db.Integer, nullable=False)
 
     

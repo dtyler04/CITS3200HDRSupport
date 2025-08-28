@@ -1,5 +1,13 @@
 {% extends "base.html" %}
+
+{% block header_button %}
+<div style="position: absolute; right: 2rem;">
+    <a href="{{ url_for('login') }}" class="btn btn-hdr ms-auto">Login</a>
+</div>
+{% endblock %}
+
 {% block title %}Welcome Page{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col">
@@ -51,7 +59,4 @@
     </div>
 </div>
 
-{% endblock %}
-{% block header_button %}
-    <a href="{{ url_for('login') }}" class="btn btn-hdr ms-auto">Login</a>
 {% endblock %}

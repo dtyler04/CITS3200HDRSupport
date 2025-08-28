@@ -14,7 +14,7 @@ app = Flask(__name__,
             static_folder=os.path.join(PROJECT_ROOT, 'static')
         )
 app.config.from_object(Config)
-CSRFProtect(app) 
+csrf = CSRFProtect(app) 
 db.init_app(app)
 with app.app_context(): 
     from . import models
