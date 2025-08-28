@@ -1,4 +1,3 @@
-
 from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
@@ -6,6 +5,8 @@ from flask import render_template, redirect, url_for, flash, session, request
 from werkzeug.security import generate_password_hash, check_password_hash
 import time
 from functools import wraps #decorators behave
+from flask_wtf.csrf import generate_csrf
+
 
 def login_required(func):
     @wraps(func)
@@ -108,7 +109,7 @@ def student_dashboard():
 
 @app.get("/admin-dashboard")
 def admin_dashboard():
-    return render_template("admin_dashboard.html")
+    return render_template("admin_dashboard.html", csrf_token=generate_csrf())
 
 @app.post("/admin-dashboard")
 def admin_dashboard_post():
@@ -141,7 +142,7 @@ def save_email_message():
             flash("New message created!", "success")
         else:
             flash("Degree code and week are required for new messages.", "danger")
-    return redirect(url_for("email_editor"))
+    return redirect(url_for("admin_dashboard"))
 
 @app.get("/messages/select")
 def select_message():
@@ -149,7 +150,7 @@ def select_message():
     messages = Message.query.order_by(Message.week_released.asc()).all()
     if not messages:
         flash("No messages available. Please create a new message.", "info")
-        return redirect(url_for("email_editor"))
+        return redirect(url_for("admin_dashboard"))
     return render_template("select_message.html", messages=messages)
 
 @app.get("/email-editor")
