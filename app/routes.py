@@ -29,7 +29,6 @@ def logout():
 def login_page():
     session.clear()
     login_form = LoginForm()
-    signup_form = StudentSignUpForm()
     return render_template("login.html", login_form=login_form)
 
 @app.get("/signup")
@@ -54,7 +53,6 @@ def login():
             flash("Login successful", "success")
             return redirect(url_for("student_dashboard"))
     flash("Invalid username or password", "danger")
-
     return redirect(url_for("login_page"))
 
 @app.post("/signup")
@@ -96,6 +94,7 @@ def signup():
             db.session.add(enrollment_update)
             db.session.add(enrollment)
             db.session.commit()  
+            flash("Account created successfully. You can log in now.", "success")
             return redirect(url_for("login_page"))
 
     # Failed validation
