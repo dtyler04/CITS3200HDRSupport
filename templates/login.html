@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block header_button %}
+<div style="position: absolute; left: 2rem;">
+    <a href="{{ url_for('index') }}" class="btn btn-hdr ms-auto">Back</a>
+</div>
+{% endblock %}
+
 {% block title %} Login Page {% endblock %}
 
 {% block content %}
