@@ -126,7 +126,11 @@ def save_email_message():
 
 @app.get("/messages/select")
 def select_message():
+
     messages = Message.query.order_by(Message.week_released.asc()).all()
+    if not messages:
+        flash("No messages available. Please create a new message.", "info")
+        return redirect(url_for("email_editor"))
     return render_template("select_message.html", messages=messages)
 
 @app.get("/email-editor")

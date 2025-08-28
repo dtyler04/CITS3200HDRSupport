@@ -16,6 +16,18 @@
         <h1 class="mx-auto">{% block header %}GUIDE{% endblock %}</h1>
         {% block header_button %}{% endblock %}
     </div>
+    <div class="flashed_messages">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                    <div class="alert alert-info custom-alert" role="alert">
+                        <span>No messages available. Please create a new message.</span>
+                        <button type="button" class="close custom-close" aria-label="Close" onclick="this.parentElement.style.display='none';">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+            {% endif %}
+        {% endwith %}
+    </div>
     <div class="container mt-5">
         {% block content %}{% endblock %}
     </div>

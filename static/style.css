@@ -1,3 +1,28 @@
+/* Centered alert styling */
+.custom-alert {
+    max-width: 500px;
+    margin: 30px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.custom-close {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-left: 16px;
+    color: #333;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.custom-close:hover {
+    background: #e0e0e0;
+}
 :root {
     --uwa-blue: #27348B;
     --uwa-gold: #E2B600;
