@@ -1,15 +1,33 @@
 from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash, session
+from werkzeug.security import generate_password_hash, check_password_hash
 import time
+from functools import wraps #decorators behave
+
+def login_required(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        if 'uid' not in session:
+            flash("Please log in first.", "warning")
+            return redirect(url_for("login_page"))
+        return func(*args, **kwargs)
+    return wrapped
 
 @app.get("/")
 def index():
     return redirect(url_for("login_page"))
 
+@app.get("/logout")
+def logout():
+    session.clear()
+    flash("Logged out.", "info")
+    return redirect(url_for("login_page"))
+
 @app.get("/login")
 def login_page():
+    session.clear()
     login_form = LoginForm()
     signup_form = StudentSignUpForm()
     return render_template("login.html", login_form=login_form)
@@ -26,10 +44,13 @@ def login():
 
     if login_form.validate_on_submit():
         user_id = login_form.user_id.data
-        password = login_form.password.data
+        password= login_form.password.data
 
         user = User.query.filter_by(user_id=user_id).first()
-        if user and user.password == password:  
+        if user and check_password_hash(user.password,password):
+            session.clear()
+            session.permanent = True # Lifetime based on config 
+            session['uid'] = user_id  
             flash("Login successful", "success")
             return redirect(url_for("student_dashboard"))
     flash("Invalid username or password", "danger")
@@ -53,7 +74,7 @@ def signup():
                 first_name = signup_form.first_name.data,
                 last_name = signup_form.last_name.data,
                 email = signup_form.email.data,
-                password = signup_form.password.data,
+                password = generate_password_hash(signup_form.password.data),
             )
 
             enrollment_update = EnrollmentUpdate(
@@ -81,6 +102,10 @@ def signup():
     flash("Invalid or existing credentials!", "danger")
     return render_template("signup.html", signup_form=signup_form)
 
-@app.route("/student-dashboard", methods=["GET"])
-def student_dashboard():         
+@app.route("/student-dashboard")
+@login_required
+def student_dashboard():     
+    if "uid" not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for("login_page"))    
     return render_template("student_dashboard.html")
