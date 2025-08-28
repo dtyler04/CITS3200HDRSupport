@@ -98,10 +98,8 @@ def signup():
     flash("Invalid or existing credentials!", "danger")
     return render_template("signup.html", signup_form=signup_form)
 
+
 @app.route("/student-dashboard")
 @login_required
 def student_dashboard():     
-    if "uid" not in session:
-        flash("Please log in first.", "warning")
-        return redirect(url_for("login_page"))    
     return render_template("student_dashboard.html")
