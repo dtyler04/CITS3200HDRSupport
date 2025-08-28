@@ -519,7 +519,23 @@ const editorConfig = {
 
 configUpdateAlert(editorConfig);
 
-ClassicEditor.create(document.querySelector('#editor'), editorConfig);
+/**
+ * this bit of code below initializes the CKEditor instance
+ * this is used to save the conent to the DB
+ */
+
+let editorInstance;
+ClassicEditor.create(document.querySelector('#editor'), editorConfig)
+	.then(editor => {
+		editorInstance = editor;
+		// Attach form submit handler to save editor data
+		const form = document.getElementById('editorForm');
+		if (form) {
+			form.addEventListener('submit', function(e) {
+				document.getElementById('message_content').value = editorInstance.getData();
+			});
+		}
+	});
 
 /**
  * This function exists to remind you to update the config needed for premium features.
