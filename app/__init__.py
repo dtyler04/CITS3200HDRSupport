@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from .config import Config 
 import os
@@ -13,7 +14,7 @@ app = Flask(__name__,
             static_folder=os.path.join(PROJECT_ROOT, 'static')
         )
 app.config.from_object(Config)
-app.config['DEBUG'] = True
+CSRFProtect(app) 
 db.init_app(app)
 with app.app_context(): 
     from . import models
