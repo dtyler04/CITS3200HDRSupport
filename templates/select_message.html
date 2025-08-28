@@ -20,7 +20,7 @@
             <td>{{ message.week_released }}</td>
             <td>{{ message.content[:50] }}...</td>
             <td>
-                <a href="{{ url_for('email_editor', message_id=message.message_id) }}" class="btn btn-primary">Edit</a>
+                <a href="{{ url_for('admin_dashboard', message_id=message.message_id) }}" class="btn btn-primary">Edit</a>
             </td>
         </tr>
     {% endfor %}
