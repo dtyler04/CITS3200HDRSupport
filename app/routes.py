@@ -1,21 +1,10 @@
-from .forms import LoginForm, StudentSignUpForm
+from .forms import LoginForm, StudentSignUpForm, EmailEditor
 from app import app, db
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, request
 from werkzeug.security import generate_password_hash, check_password_hash
 import time
-from functools import wraps #decorators behave
-from flask_wtf.csrf import generate_csrf
-
-
-def login_required(func):
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        if 'uid' not in session:
-            flash("Please log in first.", "warning")
-            return redirect(url_for("login_page"))
-        return func(*args, **kwargs)
-    return wrapped
+from .check import login_required, login_and_rights_required
 
 @app.get("/")
 def index():
@@ -29,14 +18,11 @@ def logout():
 
 @app.get("/login")
 def login_page():
-    login_form = LoginForm()
-    return render_template("login.html", login_form=login_form)
+    return render_template("login.html", login_form=LoginForm())
 
 @app.get("/signup")
 def sign_up():
-    signup_form = StudentSignUpForm()
-    return render_template("signup.html", signup_form=signup_form)
-
+    return render_template("signup.html", signup_form=StudentSignUpForm())
 
 @app.post("/login")
 def login():	
@@ -51,8 +37,12 @@ def login():
             session.clear()
             session.permanent = True # Lifetime based on config 
             session['uid'] = user_id  
+            has_admin_right = Right.query.filter_by(
+                                    user_id=user.user_id,
+                                    permission_number=1 # Put admin number according(.e.g admin)
+            ).first() is not None
             flash("Login successful", "success")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("admin_dashboard" if has_admin_right else "student_dashboard"))
     flash("Invalid username or password", "danger")
     return redirect(url_for("login_page"))
 
@@ -100,23 +90,21 @@ def signup():
     flash("Invalid or existing credentials!", "danger")
     return render_template("signup.html", signup_form=signup_form)
 
-
 @app.route("/student-dashboard")
 @login_required
 def student_dashboard():     
     return render_template("student_dashboard.html")
 
-
 @app.get("/admin-dashboard")
+@login_and_rights_required(1) # Put permission number according(.e.g admin)
 def admin_dashboard():
-    return render_template("admin_dashboard.html", csrf_token=generate_csrf())
+    return render_template("admin_dashboard.html", form=EmailEditor())
 
 @app.post("/admin-dashboard")
 def admin_dashboard_post():
     if request.method == "POST":
         flash("Message updated!", "success")
         message_content = request.form["message"]
-
 
 @app.post("/email-editor")
 def save_email_message():
@@ -145,8 +133,8 @@ def save_email_message():
     return redirect(url_for("admin_dashboard"))
 
 @app.get("/messages/select")
+@login_and_rights_required(1) # Put permission number according(.e.g admin)
 def select_message():
-
     messages = Message.query.order_by(Message.week_released.asc()).all()
     if not messages:
         flash("No messages available. Please create a new message.", "info")
@@ -154,6 +142,7 @@ def select_message():
     return render_template("select_message.html", messages=messages)
 
 @app.get("/email-editor")
+@login_and_rights_required(1) # Put permission number according(.e.g admin)
 def email_editor():
     message_id = request.args.get("message_id")
     message_content = ""
