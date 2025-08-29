@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField
-from wtforms.validators import DataRequired, Length, Email, Regexp
+from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField, HiddenField
+from wtforms.validators import DataRequired, Length, Email, Regexp, NumberRange
 
 class LoginForm(FlaskForm):
     user_id = StringField('UserID', validators=[DataRequired(), Length(min=2, max=20)])
@@ -29,3 +29,23 @@ class StudentSignUpForm(FlaskForm):
     ], validators=[DataRequired()])
     additional_info = TextAreaField('Additional Information')
     submit = SubmitField('Sign Up')
+
+class EmailEditor(FlaskForm):
+    message_id = HiddenField()
+    message_content = HiddenField(
+        validators=[DataRequired(message="Content cannot be empty.")],
+        render_kw={"id": "message_content"} 
+    )
+
+    degreeCode = StringField(
+        "degreeCode",
+        validators=[DataRequired(), Length(max=64)],
+        render_kw={"placeholder": "Degree Code", "required": True}
+    )
+    week_released = IntegerField(
+        "week_released",
+        validators=[DataRequired(), NumberRange(min=1)],
+        render_kw={"placeholder": "Week Released", "required": True}
+    )
+
+    save = SubmitField("Save", render_kw={"class": "btn btn-primary me-2"})
