@@ -22,16 +22,19 @@
                                                                                 <div id="email-editor-container" style="display:none;">
                                                                                         {% include "email_editor.html" %}
                                                                                 </div>
-                                                                                <div id="message-list-container" style="display:none;">
+                                                                                <div id="select-message-section" style="display:none;">
                                                                                         {% set messages = messages %}
                                                                                         {% include "select_message.html" %}
+                                                                                </div>
+                                                                                <div id="email-editor-section" style="display:none;">
+                                                                                    <!-- Your email editor form goes here -->
                                                                                 </div>
                                                                                 <script>
                                                                                         const newBtn = document.getElementById('newMessageBtn');
                                                                                         const openBtn = document.getElementById('openMessageBtn');
                                                                                         const btns = document.getElementById('email-action-buttons');
                                                                                         const editor = document.getElementById('email-editor-container');
-                                                                                        const list = document.getElementById('message-list-container');
+                                                                                        const list = document.getElementById('select-message-section');
                                                                                         newBtn.onclick = function() {
                                                                                                 btns.style.transition = 'all 0.5s';
                                                                                                 btns.style.opacity = 0;
@@ -60,5 +63,23 @@
                         </div>
                 </div>
                 <script src="{{ url_for('static', filename='detectmobilebroswer.js')}}"></script>
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.edit-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                        // Hide the select message table
+                        document.getElementById('select-message-section').style.display = 'none';
+                        // Show the editor section
+                        document.getElementById('email-editor-section').style.display = 'block';
+                        // Set editor content (assuming CKEditor instance is available as editorInstance)
+                        if (window.editorInstance) {
+                                window.editorInstance.setData(btn.getAttribute('data-message-content'));
+                        }
+                        // Optionally set the message_id in a hidden input for saving
+                        document.getElementById('message_id').value = btn.getAttribute('data-message-id');
+                        });
+                });
+                });
+                </script>
                 </body>
 {% endblock %}
