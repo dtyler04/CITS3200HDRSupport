@@ -109,7 +109,8 @@ def student_dashboard():
 
 @app.get("/admin-dashboard")
 def admin_dashboard():
-    return render_template("admin_dashboard.html", csrf_token=generate_csrf())
+    messages = Message.query.order_by(Message.week_released.asc()).all() #this is because the select messages is rendered internally
+    return render_template("admin_dashboard.html", csrf_token=generate_csrf(), messages=messages)
 
 @app.post("/admin-dashboard")
 def admin_dashboard_post():
