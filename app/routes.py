@@ -158,3 +158,6 @@ def select_message():
 def block_direct_access():
     return redirect(url_for("admin_dashboard"))
 
+@app.get("/editortesting")
+def editortesting():
+    return render_template("editortesting.html")
