@@ -14,11 +14,72 @@
                         <!-- Tab panes -->
                         <div class="tab-content mt-3">
                                 <div class="tab-pane fade show active" id="email" role="tabpanel" aria-labelledby="email-tab">
-                                        <h4>Create / Manage Emails</h4>
-                                        {% include "email_editor.html" %}
+                                                                                <h4>Create / Manage Emails</h4>
+                                                                                <div id="email-action-buttons" class="d-flex justify-content-center gap-4 mt-4">
+                                                                                        <button id="newMessageBtn" class="btn btn-success btn-lg">Make New Message</button>
+                                                                                        <button id="openMessageBtn" class="btn btn-primary btn-lg">Open Existing Message</button>
+                                                                                </div>
+                                                                                <div id="email-editor-container" style="display:none;">
+                                                                                        {% include "email_editor.html" %}
+                                                                                </div>
+                                                                                <div id="select-message-section" style="display:none;">
+                                                                                        {% set messages = messages %}
+                                                                                        {% include "select_message.html" %}
+                                                                                </div>
+                                                                                <div id="email-editor-section" style="display:none;">
+                                                                                    <!-- Your email editor form goes here -->
+                                                                                </div>
+                                                                                <script>
+                                                                                        const newBtn = document.getElementById('newMessageBtn');
+                                                                                        const openBtn = document.getElementById('openMessageBtn');
+                                                                                        const btns = document.getElementById('email-action-buttons');
+                                                                                        const editor = document.getElementById('email-editor-container');
+                                                                                        const list = document.getElementById('select-message-section');
+                                                                                        newBtn.onclick = function() {
+                                                                                                btns.style.transition = 'all 0.5s';
+                                                                                                btns.style.opacity = 0;
+                                                                                                setTimeout(() => {
+                                                                                                        btns.style.display = 'none';
+                                                                                                        editor.style.display = 'block';
+                                                                                                        editor.style.opacity = 0;
+                                                                                                        editor.style.transition = 'opacity 0.5s';
+                                                                                                        setTimeout(() => editor.style.opacity = 1, 10);
+                                                                                                }, 500);
+                                                                                        };
+                                                                                        openBtn.onclick = function() {
+                                                                                                btns.style.transition = 'all 0.5s';
+                                                                                                btns.style.opacity = 0;
+                                                                                                setTimeout(() => {
+                                                                                                        btns.style.display = 'none';
+                                                                                                        list.style.display = 'block';
+                                                                                                        list.style.opacity = 0;
+                                                                                                        list.style.transition = 'opacity 0.5s';
+                                                                                                        setTimeout(() => list.style.opacity = 1, 10);
+                                                                                                }, 500);
+                                                                                        };
+                                                                                </script>
                                 </div>
                                 <!-- Add more tab panes here -->
                         </div>
                 </div>
+                <script src="{{ url_for('static', filename='detectmobilebroswer.js')}}"></script>
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.edit-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                        // Hide the select message table
+                        document.getElementById('select-message-section').style.display = 'none';
+                        // Show the editor section
+                        document.getElementById('email-editor-section').style.display = 'block';
+                        // Set editor content (assuming CKEditor instance is available as editorInstance)
+                        if (window.editorInstance) {
+                                window.editorInstance.setData(btn.getAttribute('data-message-content'));
+                        }
+                        // Optionally set the message_id in a hidden input for saving
+                        document.getElementById('message_id').value = btn.getAttribute('data-message-id');
+                        });
+                });
+                });
+                </script>
                 </body>
 {% endblock %}

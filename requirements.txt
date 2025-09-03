@@ -7,3 +7,4 @@ flask_sqlalchemy
 email-validator
 Werkzeug
 python-dotenv
+Jinja2==3.1.4
