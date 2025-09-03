@@ -154,11 +154,6 @@ def select_message():
     return render_template("select_message.html", messages=messages)
 
 @app.get("/email-editor")
-def email_editor():
-    message_id = request.args.get("message_id")
-    message_content = ""
-    if message_id:
-        message = Message.query.get(message_id)
-        if message:
-            message_content = message.content
-    return render_template("email_editor.html", message_content=message_content)
+def block_direct_access():
+    return redirect(url_for("admin_dashboard"))
+
