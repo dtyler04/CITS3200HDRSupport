@@ -1,0 +1,17 @@
+<h2>Hello {{user.first_name}}</h2>
+
+<p>Here is your messages for this week</p>
+<ul>
+    {% for message in messages %}
+        <li><strong>Week {{ msg.week_released }}:</strong> {{ msg.content }}</li>
+    {% empty %}
+        <li>No messages this week.</li>
+    {% endfor %}
+</ul>
+<!--Assessment Section-->
+<p>Here are your assessments for this week</p>
+<ul>
+    {% for a in assessments %}
+    <li><strong>{{ a.title }}</strong> (due {{ a.due_date.strftime('%d %b %Y') }})</li>
+    {% endfor %}
+</ul>
