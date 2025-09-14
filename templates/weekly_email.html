@@ -3,7 +3,7 @@
 <p>Here is your messages for this week</p>
 <ul>
     {% for message in messages %}
-        <li><strong>Week {{ msg.week_released }}:</strong> {{ msg.content }}</li>
+        <li><strong>Week {{ message.week_released }}:</strong> {{ message.content }}</li>
     {% empty %}
         <li>No messages this week.</li>
     {% endfor %}
