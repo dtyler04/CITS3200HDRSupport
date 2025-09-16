@@ -4,72 +4,115 @@
                 <body>
                 <div class="container mt-5">
                         <h2>Admin Dashboard</h2>
-                        <!-- Nav tabs -->
+                        <!-- Nav tabs buttons -->
                         <ul class="nav nav-tabs" id="adminTab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="true">Email Editor</button>
-                                </li>
-                                <!-- Add more tabs here -->
+                                        <li class="nav-item" role="presentation">
+                                                <button class="nav-link active" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="true">Email Editor</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">Manage Users</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="user-stats" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="false">User Statistics</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="assessment-dates" data-bs-toggle="tab" data-bs-target="#assessment" type="button" role="tab" aria-controls="assessment" aria-selected="false">Assessment Dates</button>
+                                        </li>
                         </ul>
-                        <!-- Tab panes -->
-                        <div class="tab-content mt-3">
-                                <div class="tab-pane fade show active" id="email" role="tabpanel" aria-labelledby="email-tab">
-                                        <h4>Create / Manage Emails</h4>
-                                        <div id="email-action-buttons" class="d-flex justify-content-center gap-4 mt-4">
-                                                <button id="newMessageBtn" class="btn btn-success btn-lg">Make New Message</button>
-                                                <button id="openMessageBtn" class="btn btn-primary btn-lg">Open Existing Message</button>
-                                        </div>
-                                        <div id="email-editor-container" style="display:none;">
-                                                {% include "email_editor.html" %}
-                                        </div>
-                                        <div id="select-message-section" style="display:none;">
-                                                {% set messages = messages %}
-                                                {% include "select_message.html" %}
-                                        </div>
-                                        <div id="email-editor-section" style="display:none;">
-                                                <!-- Your email editor form goes here -->
-                                        </div>
-                                        <script>
-                                                // new button is the "Make New Message" button
-                                                const newBtn = document.getElementById('newMessageBtn');
-                                                //Oppen is the Open a saved message button.
-                                                const openBtn = document.getElementById('openMessageBtn');
-                                                const btns = document.getElementById('email-action-buttons');
-                                                const editor = document.getElementById('email-editor-container');
-                                                const list = document.getElementById('select-message-section');
-                                                newBtn.onclick = function() {
-                                                        btns.style.display = 'none';
-                                                        btns.style.visibility = 'hidden';
-                                                        btns.classList.add('d-none');
-                                                        editor.style.display = 'block';
-                                                        editor.style.opacity = 1;
-                                                        
-                                                        // Set the initial content for new messages
-                                                        setTimeout(() => {
-                                                                if (window.editorInstance) {
-                                                                        console.log('Setting editor data...');
-                                                                        window.editorInstance.setData('<p>This is a new editor! Please don\'t forget to save me!</p>');
-                                                                } else {
-                                                                        console.log('Editor instance not found, trying alternative access...');
-                                                                        // Try to find the editor instance another way
-                                                                        const editorElement = document.querySelector('#editor');
-                                                                        if (editorElement && editorElement.ckeditorInstance) {
-                                                                                editorElement.ckeditorInstance.setData('<p>This is a new editor! Please don\'t forget to save me!</p>');
+                                                <!-- Tab panes -->
+                                                <div class="tab-content mt-3">
+                                                        <div class="tab-pane fade show active" id="email" role="tabpanel" aria-labelledby="email-tab">
+                                                                <h4>Create / Manage Emails</h4>
+                                                                <div id="email-action-buttons" class="d-flex justify-content-center gap-4 mt-4">
+                                                                        <button id="newMessageBtn" class="btn btn-success btn-lg">Make New Message</button>
+                                                                        <button id="openMessageBtn" class="btn btn-primary btn-lg">Open Existing Message</button>
+                                                                </div>
+                                                                <div id="email-editor-container" style="display:none;">
+                                                                        {% include "email_editor.html" %}
+                                                                </div>
+                                                                <div id="select-message-section" style="display:none;">
+                                                                        {% set messages = messages %}
+                                                                        {% include "select_message.html" %}
+                                                                </div>
+                                                                <div id="email-editor-section" style="display:none;">
+                                                                        <!-- Your email editor form goes here -->
+                                                                </div>
+                                                                <script>
+                                                                        // new button is the "Make New Message" button
+                                                                        const newBtn = document.getElementById('newMessageBtn');
+                                                                        //Oppen is the Open a saved message button.
+                                                                        const openBtn = document.getElementById('openMessageBtn');
+                                                                        const btns = document.getElementById('email-action-buttons');
+                                                                        const editor = document.getElementById('email-editor-container');
+                                                                        const list = document.getElementById('select-message-section');
+                                                                        newBtn.onclick = function() {
+                                                                                btns.style.display = 'none';
+                                                                                btns.style.visibility = 'hidden';
+                                                                                btns.classList.add('d-none');
+                                                                                editor.style.display = 'block';
+                                                                                editor.style.opacity = 1;
+                                                                                // Set the initial content for new messages
+                                                                                setTimeout(() => {
+                                                                                        if (window.editorInstance) {
+                                                                                                console.log('Setting editor data...');
+                                                                                                window.editorInstance.setData('<p>This is a new editor! Please don\'t forget to save me!</p>');
+                                                                                        } else {
+                                                                                                console.log('Editor instance not found, trying alternative access...');
+                                                                                                // Try to find the editor instance another way
+                                                                                                const editorElement = document.querySelector('#editor');
+                                                                                                if (editorElement && editorElement.ckeditorInstance) {
+                                                                                                        editorElement.ckeditorInstance.setData('<p>This is a new editor! Please don\'t forget to save me!</p>');
+                                                                                                }
+                                                                                        }
+                                                                                }, 100);
+                                                                        };
+                                                                        openBtn.onclick = function() {
+                                                                                btns.style.display = 'none';
+                                                                                btns.style.visibility = 'hidden';
+                                                                                btns.classList.add('d-none');
+                                                                                list.style.display = 'block';
+                                                                                list.style.opacity = 1;
+                                                                        };
+                                                                </script>
+                                                        </div>
+                                                        <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+                                                                {% include "manage_users.html" %}
+                                                        </div>
+                                                        <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="user-stats">
+                                                                {% include "user_stats.html" %}
+                                                        </div>
+                                                        <div class="tab-pane fade" id="assessment" role="tabpanel" aria-labelledby="assessment-dates">
+                                                                {% include "assessment_dates.html" %}
+                                                        </div>
+                                                </div>
+                                                <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                        const tabButtons = document.querySelectorAll('.nav-link');
+                                                        const tabPanes = document.querySelectorAll('.tab-pane');
+                                                        tabButtons.forEach(btn => {
+                                                                btn.addEventListener('click', function() {
+                                                                        // Remove active/selected from all tabs
+                                                                        tabButtons.forEach(b => {
+                                                                                b.classList.remove('active');
+                                                                                b.setAttribute('aria-selected', 'false');
+                                                                        });
+                                                                        // Hide all panes
+                                                                        tabPanes.forEach(pane => {
+                                                                                pane.classList.remove('show', 'active');
+                                                                        });
+                                                                        // Activate clicked tab
+                                                                        btn.classList.add('active');
+                                                                        btn.setAttribute('aria-selected', 'true');
+                                                                        // Show corresponding pane
+                                                                        const target = btn.getAttribute('data-bs-target');
+                                                                        const pane = document.querySelector(target);
+                                                                        if (pane) {
+                                                                                pane.classList.add('show', 'active');
                                                                         }
-                                                                }
-                                                        }, 100);
-                                                };
-                                                openBtn.onclick = function() {
-                                                        btns.style.display = 'none';
-                                                        btns.style.visibility = 'hidden';
-                                                        btns.classList.add('d-none');
-                                                        list.style.display = 'block';
-                                                        list.style.opacity = 1;
-                                                };
-                                        </script>
-                                </div>
-                                <!-- Add more tab panes here -->
-                        </div>
+                                                                });
+                                                        });
+                                                });
+                                                </script>
                 </div>
                 <script src="{{ url_for('static', filename='detectmobilebroswer.js')}}"></script>
                 <script>

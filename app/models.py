@@ -12,19 +12,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
 
-    rights = db.relationship('Right', backref='user', lazy=True)
     updates = db.relationship('EnrollmentUpdate', backref='user', lazy=True)
-class Right(db.Model):
-    __tablename__ = 'Rights'
-    user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), nullable=False, primary_key=True)
-    permission_number = db.Column(db.Integer, db.ForeignKey('Admin.permission_number'), primary_key=True)
-    
-class Admin(db.Model):
-    __tablename__ = 'Admin'
-    permission_number = db.Column(db.Integer, primary_key=True)
-    permissionName = db.Column(db.String(50), nullable=False)
 
-    rights = db.relationship('Right', backref='admin', lazy=True)
 class EnrollmentUpdate(db.Model):
     __tablename__ = 'EnrollmentUpdates'
     update_id = db.Column(db.Integer, primary_key=True)
@@ -47,5 +36,22 @@ class Message(db.Model):
     degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     week_released = db.Column(db.Integer, nullable=False)
+class Permission(db.Model):
+    __tablename__ = 'Permissions'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)  # e.g. 'edit_email', 'manage_users'
 
-    
+class UserPermission(db.Model):
+    __tablename__ = 'UserPermissions'
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), primary_key=True)
+    permission_id = db.Column(db.Integer, db.ForeignKey('Permissions.id'), primary_key=True)
+
+    user = db.relationship('User', backref=db.backref('user_permissions', lazy='dynamic'))
+    permission = db.relationship('Permission', backref=db.backref('user_permissions', lazy='dynamic'))
+
+def create_default_permissions():
+    defaults = ["default", "view_admin_dashboard", "edit_email", "view_users", "manage_users", "student_stats"]
+    for name in defaults:
+        if not Permission.query.filter_by(name=name).first():
+            db.session.add(Permission(name=name))
+    db.session.commit()
