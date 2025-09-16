@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField, HiddenField
-from wtforms.validators import DataRequired, Length, Email, Regexp, NumberRange
+from wtforms.validators import DataRequired, InputRequired, Length, Email, Regexp, NumberRange
 
 class LoginForm(FlaskForm):
     user_id = StringField('UserID', validators=[DataRequired(), Length(min=2, max=20)])
@@ -49,3 +49,13 @@ class EmailEditor(FlaskForm):
     )
 
     save = SubmitField("Save", render_kw={"class": "btn btn-primary me-2"})
+
+class ChangeRightForm(FlaskForm):
+    user_id = IntegerField('User ID', validators=[DataRequired()])
+    permission_number = SelectField(
+        "Permission",
+        coerce=int,
+        choices=[(0, "Student (0)"), (1, "Admin (1)")],  # add more if you use them
+        validators=[InputRequired()]
+    )
+    submit = SubmitField('Change Right')
