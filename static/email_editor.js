@@ -90,7 +90,7 @@ const {
 } = window.CKEDITOR_PREMIUM_FEATURES;
 
 const LICENSE_KEY =
-	'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NTc1NDg3OTksImp0aSI6IjU1ODZiNTc5LWY5YTQtNDIxYS1iMzU5LTNkYjkxMTYxMjJjYiIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6ImFhZWViOWM4In0.sA6EdtQpKQNx_3E5TsBkdffrFAoKfeaeopLi96tKWrCrV1Km3aFZC6Ge8GgkNjk4Mx024YbNVQQ1aU_6pPhepQ';
+	'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NTkyNzY3OTksImp0aSI6IjhjMWQxNDQyLTQyN2UtNDA3MC1hOTYyLTczZmFkNzU5NzVhNiIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6IjJjMjI2NjIzIn0.mrcYXczE4E1bDF8Yg7wpm72X29CRyEKN8NW_0wJ8I-xerymceTlOd7N9G55qRN-6bpDDwArxQDP4EVUE3MmG_w';
 
 /**
  * USE THIS INTEGRATION METHOD ONLY FOR DEVELOPMENT PURPOSES.
@@ -528,6 +528,10 @@ let editorInstance;
 ClassicEditor.create(document.querySelector('#editor'), editorConfig)
 	.then(editor => {
 		editorInstance = editor;
+		window.editorInstance = editor; // Make it globally accessible
+		// Store reference on the DOM element as well
+		document.querySelector('#editor').ckeditorInstance = editor;
+		
 		// Attach form submit handler to save editor data
 		const form = document.getElementById('editorForm');
 		if (form) {

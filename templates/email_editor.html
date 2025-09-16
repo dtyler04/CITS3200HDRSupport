@@ -9,13 +9,6 @@
             <div class="editor-container__editor">
                 <form id="editorForm" method="POST" action="{{ url_for('save_email_message') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-success" onclick="window.location.href='{{ url_for('admin_dashboard') }}'">New Message</button>
-                        </div>
-                        <a href="{{ url_for('select_message') }}" class="btn btn-secondary" style="margin-left: auto;">Open</a>
-                    </div>
                     {% if not message_id %}
                     <div style="margin-bottom: 1rem;">
                         <input type="text" name="degreeCode" placeholder="Degree Code" required>
