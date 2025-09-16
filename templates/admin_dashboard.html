@@ -30,7 +30,9 @@
                                                 <!-- Your email editor form goes here -->
                                         </div>
                                         <script>
+                                                // new button is the "Make New Message" button
                                                 const newBtn = document.getElementById('newMessageBtn');
+                                                //Oppen is the Open a saved message button.
                                                 const openBtn = document.getElementById('openMessageBtn');
                                                 const btns = document.getElementById('email-action-buttons');
                                                 const editor = document.getElementById('email-editor-container');
@@ -74,16 +76,59 @@
                 document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('.edit-btn').forEach(function(btn) {
                         btn.addEventListener('click', function() {
+                        console.log('Edit button clicked');
+                        console.log('Message ID:', btn.getAttribute('data-message-id'));
+                        console.log('Message Content:', btn.getAttribute('data-message-content'));
+                        console.log('Degree Code:', btn.getAttribute('data-degree-code'));
+                        console.log('Week Released:', btn.getAttribute('data-week-released'));
+                        
                         // Hide the select message table
                         document.getElementById('select-message-section').style.display = 'none';
-                        // Show the editor section
-                        document.getElementById('email-editor-section').style.display = 'block';
-                        // Set editor content (assuming CKEditor instance is available as editorInstance)
-                        if (window.editorInstance) {
-                                window.editorInstance.setData(btn.getAttribute('data-message-content'));
-                        }
-                        // Optionally set the message_id in a hidden input for saving
-                        document.getElementById('message_id').value = btn.getAttribute('data-message-id');
+                        // Show the email editor container (not email-editor-section)
+                        document.getElementById('email-editor-container').style.display = 'block';
+                        
+                        // Set editor content after a small delay to ensure editor is ready
+                        setTimeout(() => {
+                                if (window.editorInstance) {
+                                        console.log('Setting existing message content...');
+                                        window.editorInstance.setData(btn.getAttribute('data-message-content'));
+                                        
+                                        // Set the message_id in the hidden input for saving
+                                        const messageIdInput = document.querySelector('input[name="message_id"]');
+                                        if (messageIdInput) {
+                                                messageIdInput.value = btn.getAttribute('data-message-id');
+                                                console.log('Message ID set to:', btn.getAttribute('data-message-id'));
+                                        } else {
+                                                console.log('Message ID input not found');
+                                        }
+                                        
+                                        // Set the degreeCode and week_released in the input fields when loaded in 
+                                        const degreeCodeInput = document.getElementById('degreecode');
+                                        const weekReleasedInput = document.getElementById('weekreleased');
+                                        
+                                        if (degreeCodeInput) {
+                                                degreeCodeInput.value = btn.getAttribute('data-degree-code');
+                                                console.log('Degree Code set to:', btn.getAttribute('data-degree-code'));
+                                        } else {
+                                                console.log('Degree Code input not found');
+                                        }
+                                        
+                                        if (weekReleasedInput) {
+                                                weekReleasedInput.value = btn.getAttribute('data-week-released');
+                                                console.log('Week Released set to:', btn.getAttribute('data-week-released'));
+                                        } else {
+                                                console.log('Week Released input not found');
+                                        }
+                                        
+                                } else {
+                                        console.log('Editor instance not found for editing');
+                                        // Try alternative access
+                                        const editorElement = document.querySelector('#editor');
+                                        if (editorElement && editorElement.ckeditorInstance) {
+                                                editorElement.ckeditorInstance.setData(btn.getAttribute('data-message-content'));
+                                        }
+                                }
+                        }, 200);
                         });
                 });
                 });

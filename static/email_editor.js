@@ -102,7 +102,7 @@ const LICENSE_KEY =
 const AI_API_KEY = '<YOUR_AI_API_KEY>';
 
 const CLOUD_SERVICES_TOKEN_URL =
-	'https://4juq1tkpiexv.cke-cs.com/token/dev/ae9e968a0acdcc07ff1610981258f1fba4b5d4dfa3e6af8d7c2d592dad38?limit=10';
+	'https://2fjh4hne8eke.cke-cs.com/token/dev/dccf5ef9bfda59e007723c61b3d6c53f6ec7f7c2226279a0b729e76e5bc9?limit=10';
 
 const DEFAULT_HEX_COLORS = [
 	{ color: '#000000', label: 'Black' },

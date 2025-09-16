@@ -123,19 +123,25 @@ def admin_dashboard_post():
 def save_email_message():
     message_id = request.form.get("message_id")
     content = request.form.get("message_content")
+    degreeCode = request.form.get("degreeCode")
+    week_released = request.form.get("week_released")
+    
     if message_id:
         # Update existing message
         message = Message.query.get(message_id)
         if message:
             message.content = content
+            # Update degreeCode and week_released if provided
+            if degreeCode:
+                message.degreeCode = degreeCode
+            if week_released:
+                message.week_released = week_released
             db.session.commit()
             flash("Message updated!", "success")
         else:
             flash("Message not found.", "danger")
     else:
         # Create new message
-        degreeCode = request.form.get("degreeCode")
-        week_released = request.form.get("week_released")
         if degreeCode and week_released:
             new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
             db.session.add(new_message)
