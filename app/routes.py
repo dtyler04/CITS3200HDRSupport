@@ -1,10 +1,10 @@
-from .forms import LoginForm, StudentSignUpForm, EmailEditor
+from .forms import LoginForm, StudentSignUpForm
 from app import app, db
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, request
 from werkzeug.security import generate_password_hash, check_password_hash
 import time
-from .check import login_required, login_and_rights_required
+from .check import login_required
 
 @app.get("/")
 def index():
@@ -36,13 +36,13 @@ def login():
         if user and check_password_hash(user.password,password):
             session.clear()
             session.permanent = True # Lifetime based on config 
-            session['uid'] = user_id  
+            session['uid'] = user.user_id  
             has_admin_right = Right.query.filter_by(
                                     user_id=user.user_id,
                                     permission_number=1 # Put admin number according(.e.g admin)
             ).first() is not None
             flash("Login successful", "success")
-            return redirect(url_for("admin_dashboard" if has_admin_right else "student_dashboard"))
+            return redirect(url_for("admin.admin_dashboard" if has_admin_right else "student_dashboard"))
     flash("Invalid username or password", "danger")
     return redirect(url_for("login_page"))
 
@@ -80,8 +80,14 @@ def signup():
                 current_week = 0, # Need verifications 
             )
 
+            right =Right(
+                user_id = signup_form.user_id.data,
+                permission_number = 0
+            )
+
             db.session.add(user)
             db.session.add(enrollment_update)
+            db.session.add(right)
             db.session.commit()  
             flash("Account created successfully. You can log in now.", "success")
             return redirect(url_for("login_page"))
@@ -95,59 +101,3 @@ def signup():
 def student_dashboard():     
     return render_template("student_dashboard.html")
 
-@app.get("/admin-dashboard")
-@login_and_rights_required(1) # Put permission number according(.e.g admin)
-def admin_dashboard():
-    return render_template("admin_dashboard.html", form=EmailEditor())
-
-@app.post("/admin-dashboard")
-def admin_dashboard_post():
-    if request.method == "POST":
-        flash("Message updated!", "success")
-        message_content = request.form["message"]
-
-@app.post("/email-editor")
-def save_email_message():
-    message_id = request.form.get("message_id")
-    content = request.form.get("message_content")
-    if message_id:
-        # Update existing message
-        message = Message.query.get(message_id)
-        if message:
-            message.content = content
-            db.session.commit()
-            flash("Message updated!", "success")
-        else:
-            flash("Message not found.", "danger")
-    else:
-        # Create new message
-        degreeCode = request.form.get("degreeCode")
-        week_released = request.form.get("week_released")
-        if degreeCode and week_released:
-            new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
-            db.session.add(new_message)
-            db.session.commit()
-            flash("New message created!", "success")
-        else:
-            flash("Degree code and week are required for new messages.", "danger")
-    return redirect(url_for("admin_dashboard"))
-
-@app.get("/messages/select")
-@login_and_rights_required(1) # Put permission number according(.e.g admin)
-def select_message():
-    messages = Message.query.order_by(Message.week_released.asc()).all()
-    if not messages:
-        flash("No messages available. Please create a new message.", "info")
-        return redirect(url_for("admin_dashboard"))
-    return render_template("select_message.html", messages=messages)
-
-@app.get("/email-editor")
-@login_and_rights_required(1) # Put permission number according(.e.g admin)
-def email_editor():
-    message_id = request.args.get("message_id")
-    message_content = ""
-    if message_id:
-        message = Message.query.get(message_id)
-        if message:
-            message_content = message.content
-    return render_template("email_editor.html", message_content=message_content)
