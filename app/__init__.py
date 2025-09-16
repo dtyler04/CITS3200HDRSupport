@@ -20,4 +20,6 @@ with app.app_context():
     from . import models
     db.create_all()
 
+from .routes_admin import admin_bp
+app.register_blueprint(admin_bp )
 from . import routes
