@@ -1,10 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField, FileField
+from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField, FileField
 from wtforms.validators import DataRequired, Length, Email, Regexp, Optional
 from datetime import datetime
 
 class LoginForm(FlaskForm):
-    user_id = StringField('UserID', validators=[DataRequired(), Length(min=2, max=20)])
+    user_id = IntegerField('UserID', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
