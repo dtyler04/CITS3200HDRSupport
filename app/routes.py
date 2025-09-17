@@ -165,6 +165,35 @@ def select_message():
 def block_direct_access():
     return redirect(url_for("admin_dashboard"))
 
-@app.get("/editortesting")
-def editortesting():
-    return render_template("editortesting.html")
+# Helper Function to fetch messages+assessments for a user
+def get_student_updates(user_id, lookahead_weeks=2):
+    user = User.query.get(user_id)
+    if not user:
+        return None, None
+
+    enrollment_update = EnrollmentUpdate.query.filter_by(user_id=user_id).first()
+    if not enrollment_update:
+        return None, None
+
+    degree_code = enrollment_update.degreeCode
+    current_week = enrollment_update.current_week
+
+    messages = Message.query.filter(
+        Message.degreeCode == degree_code,
+        Message.week_released > current_week,
+        Message.week_released <= current_week + lookahead_weeks
+    ).order_by(Message.week_released.asc()).all()
+
+    assessments = Assessments.query.filter(
+        Assessments.degreeCode == degree_code,
+        Assessments.due_week > current_week,
+        Assessments.due_week <= current_week + lookahead_weeks
+    ).order_by(Assessments.due_week.asc()).all()
+
+    return messages, assessments
+
+@app.route("/preview_emails/<int:user_id>")
+@login_required
+def preview_email(user_id):
+    messages, assessments = get_student_updates(user_id)
+    return render_template("weekly_email.html", messages=messages, assessments=assessments)
