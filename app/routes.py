@@ -50,7 +50,7 @@ def login():
     login_form = LoginForm()
 
     if login_form.validate_on_submit():
-        user_id = int(login_form.user_id.data)           # changed code: cast to int
+        user_id = login_form.user_id.data           # changed code: cast to int
         password = login_form.password.data
 
         user = User.query.filter_by(user_id=user_id).first()
@@ -69,14 +69,14 @@ def signup():
 
     if signup_form.validate_on_submit():
         # Uniqueness checks
-        if User.query.filter_by(user_id=int(signup_form.user_id.data)).first():
+        if User.query.filter_by(user_id=signup_form.user_id.data).first():
             signup_form.user_id.errors.append("ID has already taken or unvalid.")
         if User.query.filter_by(email=signup_form.email.data).first():
             signup_form.email.errors.append("Email already registered.")
 
         if not (signup_form.user_id.errors or signup_form.email.errors):
             user = User(
-                user_id = int(signup_form.user_id.data),              # changed code: cast to int
+                user_id = signup_form.user_id.data,              # changed code: cast to int
                 first_name = signup_form.first_name.data,
                 last_name = signup_form.last_name.data,
                 email = signup_form.email.data,
@@ -84,7 +84,7 @@ def signup():
                     signup_form.password.data,
                     method='pbkdf2:sha256'                            # changed code: force PBKDF2
                 ),
-            )
+        )
 
             enrollment_update = EnrollmentUpdate(
                 update_id = int(time.time()), # Need verifications
