@@ -3,6 +3,7 @@
 
 
 from app import db
+from datetime import datetime
 
 class User(db.Model):
     __tablename__ = 'Users'
@@ -44,8 +45,37 @@ class Enrollment(db.Model):
 class Message(db.Model):
     __tablename__ = 'Messages'
     message_id = db.Column(db.Integer, primary_key=True)
-    degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)               # new
+    degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=True)
     message_content = db.Column(db.Text, nullable=False)
-    week_released = db.Column(db.Integer, nullable=False)
+    week_released = db.Column(db.Integer, nullable=True)
+    scheduled_at = db.Column(db.DateTime, nullable=True)            # new: schedule time
+    degree_type_target = db.Column(db.String(20), nullable=True)    # 'masters','phd' or NULL for all
+    location_target = db.Column(db.String(20), nullable=True)       # 'online','on-campus' or NULL
+    stage_target = db.Column(db.String(30), nullable=True)          # 'commencing' etc or NULL
 
-    
+class Reminder(db.Model):
+    __tablename__ = 'Reminders'
+    reminder_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=True)
+    scheduled_at = db.Column(db.DateTime, nullable=False)
+    degree_type_target = db.Column(db.String(20), nullable=True)
+    location_target = db.Column(db.String(20), nullable=True)
+    stage_target = db.Column(db.String(30), nullable=True)
+
+class SupportPost(db.Model):
+    __tablename__ = 'SupportPosts'
+    post_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    image_filename = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class SupportContact(db.Model):
+    __tablename__ = 'SupportContacts'
+    contact_id = db.Column(db.Integer, primary_key=True)
+    service_type = db.Column(db.String(100), nullable=False)   # e.g. 'Mental Health'
+    name = db.Column(db.String(200), nullable=False)
+    info = db.Column(db.String(300), nullable=False)
+

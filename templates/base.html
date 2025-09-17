@@ -15,6 +15,19 @@
 <body>
     <div class="hdr-header text-center d-flex justify-content-between align-items-center px-4">
         <h1 class="mx-auto">{% block header %}GUIDE{% endblock %}</h1>
+
+        <!-- Dropdown menu: Welcome page + Logout -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                Menu
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                <li><a class="dropdown-item" href="{{ url_for('index') }}">Welcome Page</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </div>
+
         {% block header_button %}{% endblock %}
     </div>
     <!-- Flash messages -->
