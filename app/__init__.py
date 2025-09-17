@@ -22,5 +22,6 @@ migrate = Migrate(app, db)
 # import models so SQLAlchemy knows model classes (do NOT call create_all() here)
 with app.app_context(): 
     from . import models
+    db.create_all()
 
 from . import routes
