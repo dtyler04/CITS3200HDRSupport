@@ -113,6 +113,7 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", csrf_token=generate_csrf(), messages=messages)
 
 @app.post("/admin-dashboard")
+@login_required
 def admin_dashboard_post():
     if request.method == "POST":
         flash("Message updated!", "success")
