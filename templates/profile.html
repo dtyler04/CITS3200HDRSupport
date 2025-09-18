@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile</title>
+  <link rel="stylesheet" href="styles.css"> <!-- link your CSS -->
+</head>
+<body>
+  <!-- Navigation bar (reuse from student dashboard) -->
+  <nav class="navbar">
+    <h2>Student Dashboard</h2>
+    <div class="dropdown">
+      <button class="dropbtn">Menu ▼</button>
+      <div class="dropdown-content">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="messages.html">Messages</a>
+        <a href="reminders.html">Reminders</a>
+        <a href="wellbeing.html">Wellbeing</a>
+        <a href="profile.html">Profile</a> <!-- ✅ New profile link -->
+      </div>
+    </div>
+  </nav>
+
+  <!-- Profile Section -->
+  <main class="profile-container">
+    <h2>My Profile</h2>
+    <div class="profile-card">
+      <img src="student-placeholder.png" alt="Profile Picture" class="profile-pic">
+      <h3>John Doe</h3>
+      <p><strong>Course:</strong> Master of Computer Science</p>
+      <p><strong>Enrolment Date:</strong> 12 Feb 2023</p>
+      <p><strong>Status:</strong> Full-time</p>
+      <p><strong>Location:</strong> Perth, WA</p>
+      <p><strong>Email:</strong> john.doe@student.uwa.edu.au</p>
+      <button>Edit Profile</button>
+    </div>
+  </main>
+</body>
+</html>

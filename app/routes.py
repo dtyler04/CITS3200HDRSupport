@@ -152,6 +152,11 @@ def student_dashboard():
         contacts=contacts
     )
 
+@app.route("/profile")
+def profile():
+    return render_template("profile.html", first_name="John", last_name="Doe")
+
+
 @app.get("/admin")
 @login_required
 def admin_dashboard():
