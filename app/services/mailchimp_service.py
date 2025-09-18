@@ -31,7 +31,7 @@ class MailchimpService:
         try:
             return self.client.lists.set_list_member(self.list_id, sub_hash, body)
         except ApiClientError as e:
-            print("Mailchimp API error:", e.text)   # 🔹 log JSON error response
+            print("Mailchimp API error:", e.text)
             raise
 
     def get_member(self, email):
@@ -39,7 +39,7 @@ class MailchimpService:
         try:
             return self.client.lists.get_list_member(self.list_id, sub_hash)
         except ApiClientError as error:
-            if error.status_code == 404: # Audience member not found
+            if error.status_code == 404:
                 return None
             raise
     
@@ -51,3 +51,10 @@ class MailchimpService:
                 "merge_fields": {"FNAME": first_name, "LNAME": last_name}
             }
             return self.client.lists.add_list_member(self.list_id, body)
+
+    def delete_member(self, email):
+        sub_hash = self._subscriber_hash(email)
+        try:
+            return self.client.lists.delete_list_member(self.list_id, sub_hash)
+        except Exception as e:
+            return False
