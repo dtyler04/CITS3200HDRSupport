@@ -7,7 +7,7 @@ def login_required(func):
     def wrapped(*args, **kwargs):
         if 'uid' not in session:
             flash("Please log in first.", "warning")
-            return redirect(url_for("login_page"))
+            return redirect(url_for("main.login_page"))
         return func(*args, **kwargs)
     return wrapped
 
@@ -18,7 +18,7 @@ def login_and_rights_required(*perm_numbers):
             uid = session.get('uid')
             if not uid:
                 flash("Please log in first.", "warning")
-                return redirect(url_for("login_page"))
+                return redirect(url_for("main.login_page"))
 
             user = User.query.get(uid)
             if not user:
