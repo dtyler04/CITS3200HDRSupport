@@ -59,3 +59,19 @@ class ChangeRightForm(FlaskForm):
         validators=[InputRequired()]
     )
     submit = SubmitField('Change Right')
+
+class DeleteAccountForm(FlaskForm):
+    user_id = IntegerField('User ID', validators=[DataRequired()])
+    submit = SubmitField('Delete Account', render_kw={"class": "btn btn-danger", "onclick": "return confirm('Are you sure you want to delete this account? This action cannot be undone.');"})
+
+class VerifyOTPForm(FlaskForm):
+    code = IntegerField('Verification Code', 
+                        validators=[
+                            InputRequired(message="Enter your code."),
+                            NumberRange(min=100000, max=999999, message="Enter a 6-digit code."),
+                        ]
+    )
+    submit = SubmitField('Verify')
+    
+class ResendOTPForm(FlaskForm):
+    resend = SubmitField("Resend code")
