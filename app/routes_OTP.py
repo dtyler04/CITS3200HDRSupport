@@ -76,10 +76,9 @@ def verify_submit():
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
-            status="subscribed"  # or "pending" if you want double opt-in
+            status="subscribed"
         )
     except Exception as e:
-        # Optionally log or flash a warning, but don't block signup
         flash("Warning: Could not subscribe to mailing list.", "warning")
 
     flash("Email verified! You can now log in.", "success")
