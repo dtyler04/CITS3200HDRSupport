@@ -11,9 +11,13 @@ class User(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    email_verified_at = db.Column(db.DateTime, nullable=True)
 
-    rights = db.relationship('Right', backref='user', lazy=True)
-    updates = db.relationship('EnrollmentUpdate', backref='user', lazy=True)
+    rights = db.relationship('Right', backref='user', lazy='select', cascade="all, delete-orphan", passive_deletes=False)
+    updates = db.relationship('EnrollmentUpdate', backref='user', lazy='select', cascade="all, delete-orphan", passive_deletes=False)
+
+    def is_verified(self):
+        return self.email_verified_at is not None
 class Right(db.Model):
     __tablename__ = 'Rights'
     user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), nullable=False, primary_key=True)

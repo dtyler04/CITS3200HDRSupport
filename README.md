@@ -67,22 +67,92 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 
 ## Github Directory Structure
 <pre>
-.
-├──Sprint_1_Tests
-│    ├──Test_A.py
-│    └──Test_C.py
-├──app
-│    └──forms.py
-├──static
-│    └──style.css
-├──templates
-│    ├──base.html
-│    ├──login.html
-│    ├──student_dashboard.html
-│    └──admin_dashboard.html
-├──tests
-├──README.md
-└──requirements.text
+CITS3200HDRSupport
+├── .gitignore
+├── HowToVenv.md
+├── License
+├── README.md
+├── Sprint_1_Tests
+│   ├── Test_A.py
+│   └── Test_C.py
+├── app
+│   ├── .env
+│   ├── __init__.py
+│   ├── check.py
+│   ├── config.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── routes.py
+│   ├── routes_OTP.py
+│   ├── routes_admin.py
+│   └── services
+│       ├── __pycache__
+│       ├── emailOTP.py
+│       └── mailchimp_service.py
+├── instance
+├── requirements.txt
+├── static
+│   ├── .gitkeep
+│   ├── email_editor.css
+│   ├── email_editor.js
+│   ├── favicon.ico
+│   ├── fonts
+│   │   └── SchussSlabPro
+│   │       ├── SchussSlabPro-Bold.eot
+│   │       ├── SchussSlabPro-Bold.ttf
+│   │       ├── SchussSlabPro-Bold.woff
+│   │       ├── SchussSlabPro-Bold.woff2
+│   │       ├── SchussSlabPro-BoldItalic.eot
+│   │       ├── SchussSlabPro-BoldItalic.ttf
+│   │       ├── SchussSlabPro-BoldItalic.woff
+│   │       ├── SchussSlabPro-BoldItalic.woff2
+│   │       ├── SchussSlabPro-Heavy.eot
+│   │       ├── SchussSlabPro-Heavy.ttf
+│   │       ├── SchussSlabPro-Heavy.woff
+│   │       ├── SchussSlabPro-Heavy.woff2
+│   │       ├── SchussSlabPro-HeavyItalic.eot
+│   │       ├── SchussSlabPro-HeavyItalic.ttf
+│   │       ├── SchussSlabPro-HeavyItalic.woff
+│   │       ├── SchussSlabPro-HeavyItalic.woff2
+│   │       ├── SchussSlabPro-Italic.eot
+│   │       ├── SchussSlabPro-Italic.ttf
+│   │       ├── SchussSlabPro-Italic.woff
+│   │       ├── SchussSlabPro-Italic.woff2
+│   │       ├── SchussSlabPro-Light.eot
+│   │       ├── SchussSlabPro-Light.ttf
+│   │       ├── SchussSlabPro-Light.woff
+│   │       ├── SchussSlabPro-Light.woff2
+│   │       ├── SchussSlabPro-LightItalic.eot
+│   │       ├── SchussSlabPro-LightItalic.ttf
+│   │       ├── SchussSlabPro-LightItalic.woff
+│   │       ├── SchussSlabPro-LightItalic.woff2
+│   │       ├── SchussSlabPro-Medium.eot
+│   │       ├── SchussSlabPro-Medium.ttf
+│   │       ├── SchussSlabPro-Medium.woff
+│   │       ├── SchussSlabPro-Medium.woff2
+│   │       ├── SchussSlabPro-MediumItalic.eot
+│   │       ├── SchussSlabPro-MediumItalic.ttf
+│   │       ├── SchussSlabPro-MediumItalic.woff
+│   │       ├── SchussSlabPro-MediumItalic.woff2
+│   │       ├── SchussSlabPro-Regular.eot
+│   │       ├── SchussSlabPro-Regular.ttf
+│   │       ├── SchussSlabPro-Regular.woff
+│   │       ├── SchussSlabPro-Regular.woff2
+│   │       └── stylesheet.css
+│   └── style.css
+├── style.md
+├── templates
+│   ├── admin_dashboard.html
+│   ├── base.html
+│   ├── email_editor.html
+│   ├── login.html
+│   ├── select_message.html
+│   ├── signup.html
+│   ├── student_dashboard.html
+│   ├── weekly_email.html
+│   └── welcome.html
+├── tests
+│   └── .gitkeep
 </pre>
 
 ## Client
