@@ -1,13 +1,11 @@
 from .forms import LoginForm, StudentSignUpForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm
 from app import app, db
 from .models import *
-from flask import render_template, redirect, url_for, flash, session
+from flask import render_template, redirect, url_for, flash, session, request, current_app, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
-import time
+import time, os
 from functools import wraps #decorators behave
-import os
 from datetime import datetime
-from flask import request, current_app, send_from_directory
 from werkzeug.utils import secure_filename
 
 ALLOWED_EXT = {'png','jpg','jpeg','gif'}
@@ -26,7 +24,7 @@ def login_required(func):
 
 @app.get("/")
 def index():
-    return redirect(url_for("login_page"))
+    return render_template("welcome.html")
 
 @app.get("/logout")
 def logout():
@@ -272,3 +270,88 @@ def admin_create_contact():
 @app.get('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config.get('UPLOAD_FOLDER'), filename)
+
+@app.post("/admin-dashboard")
+def admin_dashboard_post():
+    if request.method == "POST":
+        flash("Message updated!", "success")
+        message_content = request.form["message"]
+
+
+@app.post("/email-editor")
+def save_email_message():
+    message_id = request.form.get("message_id")
+    content = request.form.get("message_content")
+    if message_id:
+        # Update existing message
+        message = Message.query.get(message_id)
+        if message:
+            message.content = content
+            db.session.commit()
+            flash("Message updated!", "success")
+        else:
+            flash("Message not found.", "danger")
+    else:
+        # Create new message
+        degreeCode = request.form.get("degreeCode")
+        week_released = request.form.get("week_released")
+        if degreeCode and week_released:
+            new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
+            db.session.add(new_message)
+            db.session.commit()
+            flash("New message created!", "success")
+        else:
+            flash("Degree code and week are required for new messages.", "danger")
+    return redirect(url_for("admin_dashboard"))
+
+@app.get("/messages/select")
+def select_message():
+
+    messages = Message.query.order_by(Message.week_released.asc()).all()
+    if not messages:
+        flash("No messages available. Please create a new message.", "info")
+        return redirect(url_for("admin_dashboard"))
+    return render_template("select_message.html", messages=messages)
+
+@app.get("/email-editor")
+def email_editor():
+    message_id = request.args.get("message_id")
+    message_content = ""
+    if message_id:
+        message = Message.query.get(message_id)
+        if message:
+            message_content = message.content
+    return render_template("email_editor.html", message_content=message_content)
+
+# Helper Function to fetch messages+assessments for a user
+def get_student_updates(user_id, lookahead_weeks=2):
+    user = User.query.get(user_id)
+    if not user:
+        return None, None
+
+    enrollment_update = EnrollmentUpdate.query.filter_by(user_id=user_id).first()
+    if not enrollment_update:
+        return None, None
+
+    degree_code = enrollment_update.degreeCode
+    current_week = enrollment_update.current_week
+
+    messages = Message.query.filter(
+        Message.degreeCode == degree_code,
+        Message.week_released > current_week,
+        Message.week_released <= current_week + lookahead_weeks
+    ).order_by(Message.week_released.asc()).all()
+
+    assessments = Assessments.query.filter(
+        Assessments.degreeCode == degree_code,
+        Assessments.due_week > current_week,
+        Assessments.due_week <= current_week + lookahead_weeks
+    ).order_by(Assessments.due_week.asc()).all()
+
+    return messages, assessments
+
+@app.route("/preview_emails/<int:user_id>")
+@login_required
+def preview_email(user_id):
+    messages, assessments = get_student_updates(user_id)
+    return render_template("weekly_email.html", messages=messages, assessments=assessments)
