@@ -93,7 +93,7 @@ def signup():
 
             enrollment_update = EnrollmentUpdate(
                 update_id = int(time.time()), # Need verifications
-                user_id = int(signup_form.user_id.data),             # changed code: cast to int
+                user_id = signup_form.user_id.data,             # changed code: cast to int
                 degreeCode = signup_form.degree_code.data,
                 location = signup_form.location.data,
                 initialisation = False, # Need verfications

@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Profile</title>
-  <link rel="stylesheet" href="styles.css"> <!-- link your CSS -->
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Student Profile{% endblock %}
+{% block content %}
   <!-- Navigation bar (reuse from student dashboard) -->
   <nav class="navbar">
     <h2>Student Dashboard</h2>
     <div class="dropdown">
       <button class="dropbtn">Menu ▼</button>
       <div class="dropdown-content">
-        <a href="dashboard.html">Dashboard</a>
+        <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
         <a href="messages.html">Messages</a>
         <a href="reminders.html">Reminders</a>
         <a href="wellbeing.html">Wellbeing</a>
@@ -36,5 +30,4 @@
       <button>Edit Profile</button>
     </div>
   </main>
-</body>
-</html>
+{% endblock %}
