@@ -1,4 +1,4 @@
-from .forms import LoginForm, StudentSignUpForm
+from .forms import LoginForm, StudentSignUpForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm
 from app import app, db
 from .models import *
 from flask import render_template, redirect, url_for, flash, session
@@ -54,12 +54,17 @@ def login():
         password = login_form.password.data
 
         user = User.query.filter_by(user_id=user_id).first()
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password,password):
             session.clear()
-            session.permanent = True # Lifetime based on config 
-            session['uid'] = user_id  
+            session.permanent = True # Lifetime based on config
+            session['uid'] = user.user_id  
+            has_admin_right = Right.query.filter_by(
+                                    user_id=user.user_id,
+                                    permission_number=1 # Put admin number according(.e.g admin)
+            ).first() is not None
             flash("Login successful", "success")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("admin_dashboard" if has_admin_right else "student_dashboard"))
+ 
     flash("Invalid username or password", "danger")
     return redirect(url_for("login_page"))
 
@@ -95,8 +100,9 @@ def signup():
                 study_mode = signup_form.enrollment_status.data,
                 current_week = 0, # Need verifications 
             )
-
+            x = Right(user_id=signup_form.user_id.data, permission_number=0)
             db.session.add(user)
+            db.session.add(x)
             db.session.add(enrollment_update)
             db.session.commit()  
             flash("Account created successfully. You can log in now.", "success")
