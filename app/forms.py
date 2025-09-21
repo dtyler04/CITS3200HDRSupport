@@ -9,9 +9,9 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class StudentSignUpForm(FlaskForm):
-    user_id = StringField(
+    user_id = IntegerField(
         'Student ID',
-        validators=[DataRequired(), Regexp(r'^\d{8}$', message='Enter exactly 8 digits.')]
+        validators=[DataRequired()]
     )
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)])
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)])
