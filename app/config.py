@@ -14,3 +14,7 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax" # CSRF protection default
     SESSION_COOKIE_SECURE = False   # Change to True when deploy
     PERMANENT_SESSION_LIFETIME = 1800 # 30 mins lifetime
+
+    # file uploads for support posts
+    UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
+    MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4 MB

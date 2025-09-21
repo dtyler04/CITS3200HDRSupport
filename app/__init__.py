@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from .config import Config 
 import os
 
@@ -16,6 +17,9 @@ app = Flask(__name__,
 app.config.from_object(Config)
 csrf = CSRFProtect(app) 
 db.init_app(app)
+migrate = Migrate(app, db)
+
+# import models so SQLAlchemy knows model classes (do NOT call create_all() here)
 with app.app_context(): 
     from . import models
     db.create_all()
