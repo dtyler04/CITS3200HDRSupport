@@ -17,7 +17,7 @@
     <div class="hdr-header d-flex align-items-center px-4" style="position: relative;">
         <h1 class="w-100 text-center m-0">{% block header %}GUIDE{% endblock %}</h1>
         
-            {% block header_button %}{% endblock %}
+        {% block header_button %}{% endblock %}
     </div>
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories = true) %}

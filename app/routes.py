@@ -1,9 +1,10 @@
-from .forms import LoginForm, StudentSignUpForm
-from app import db
-from .models import *
-from flask import render_template, redirect, url_for, flash, session, Blueprint, current_app
-from werkzeug.security import generate_password_hash, check_password_hash
 from .check import login_required
+from .forms import LoginForm, StudentSignUpForm
+from .check import login_required
+from .models import *
+from flask import render_template, redirect, url_for, flash, session, request, current_app, send_from_directory, Blueprint
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 main_bp = Blueprint("main", __name__, url_prefix='')
 
@@ -31,7 +32,7 @@ def login():
 
     if login_form.validate_on_submit():
         user_id = login_form.user_id.data
-        password= login_form.password.data
+        password = login_form.password.data
 
         user = User.query.filter_by(user_id=user_id).first()
         if user and not user.email_verified_at:
@@ -49,7 +50,6 @@ def login():
             ).first() is not None
             flash("Login successful", "success")
             return redirect(url_for("admin.admin_dashboard" if has_admin_right else "main.student_dashboard"))
-        
     flash("Invalid username or password", "danger")
     return redirect(url_for("main.login_page"))
 
@@ -70,7 +70,7 @@ def signup():
                 "first_name": signup_form.first_name.data,
                 "last_name": signup_form.last_name.data,
                 "email": signup_form.email.data,
-                "password": signup_form.password.data,  # hash later
+                "password": signup_form.password.data,  
                 "degree_code": signup_form.degree_code.data,
                 "location": signup_form.location.data,
                 "enrollment_status": signup_form.enrollment_status.data,
@@ -89,38 +89,80 @@ def signup():
 
 @main_bp.route("/student-dashboard")
 @login_required
-def student_dashboard():     
-    return render_template("student_dashboard.html")
-
-# Helper Function to fetch messages+assessments for a user
-def get_student_updates(user_id, lookahead_weeks=2):
-    user = User.query.get(user_id)
+def student_dashboard():
+    user = User.query.filter_by(user_id=session.get('uid')).first()
     if not user:
-        return None, None
+        flash("User not found.", "danger")
+        return redirect(url_for("login_page"))
 
-    enrollment_update = EnrollmentUpdate.query.filter_by(user_id=user_id).first()
-    if not enrollment_update:
-        return None, None
+    # Get user's latest enrollment update for targeting
+    enrollment_update = EnrollmentUpdate.query.filter_by(user_id=user.user_id).order_by(EnrollmentUpdate.update_id.desc()).first()
+    degree_type = None
+    location = None
+    stage = None
+    if enrollment_update:
+        degree = Enrollment.query.filter_by(degreeCode=enrollment_update.degreeCode).first()
+        degree_type = degree.degree_type if degree else None
+        location = enrollment_update.location
+        # You may want to store 'stage' in EnrollmentUpdate or elsewhere
+        stage = None  # Set this if you have it
 
-    degree_code = enrollment_update.degreeCode
-    current_week = enrollment_update.current_week
+    # Filter reminders/messages for this user
+    reminders = Reminder.query.filter(
+        (Reminder.degree_type_target == None) | (Reminder.degree_type_target == degree_type),
+        (Reminder.location_target == None) | (Reminder.location_target == location),
+        (Reminder.stage_target == None) | (Reminder.stage_target == stage)
+    ).order_by(Reminder.scheduled_at.asc()).all()
 
     messages = Message.query.filter(
-        Message.degreeCode == degree_code,
-        Message.week_released > current_week,
-        Message.week_released <= current_week + lookahead_weeks
-    ).order_by(Message.week_released.asc()).all()
+        (Message.degree_type_target == None) | (Message.degree_type_target == degree_type),
+        (Message.location_target == None) | (Message.location_target == location),
+        (Message.stage_target == None) | (Message.stage_target == stage)
+    ).order_by(Message.scheduled_at.asc().nullslast()).all()
 
-    assessments = Assessments.query.filter(
-        Assessments.degreeCode == degree_code,
-        Assessments.due_week > current_week,
-        Assessments.due_week <= current_week + lookahead_weeks
-    ).order_by(Assessments.due_week.asc()).all()
+    wellbeing_posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
+    contacts = SupportContact.query.order_by(SupportContact.service_type).all()
 
-    return messages, assessments
+    return render_template(
+        "student_dashboard.html",
+        first_name=user.first_name,
+        reminders=reminders,
+        messages=messages,
+        wellbeing_posts=wellbeing_posts,
+        contacts=contacts
+    )
+
+@main_bp.route("/profile")
+def profile():
+    return render_template("profile.html", first_name="John", last_name="Doe")
 
 @main_bp.route("/preview_emails/<int:user_id>")
 @login_required
 def preview_email(user_id):
+    def get_student_updates(user_id, lookahead_weeks=2):
+        user = User.query.get(user_id)
+        if not user:
+            return None, None
+
+        enrollment_update = EnrollmentUpdate.query.filter_by(user_id=user_id).first()
+        if not enrollment_update:
+            return None, None
+
+        degree_code = enrollment_update.degreeCode
+        current_week = enrollment_update.current_week
+
+        messages = Message.query.filter(
+            Message.degreeCode == degree_code,
+            Message.week_released > current_week,
+            Message.week_released <= current_week + lookahead_weeks
+        ).order_by(Message.week_released.asc()).all()
+
+        assessments = Assessments.query.filter(
+            Assessments.degreeCode == degree_code,
+            Assessments.due_week > current_week,
+            Assessments.due_week <= current_week + lookahead_weeks
+        ).order_by(Assessments.due_week.asc()).all()
+
+        return messages, assessments
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)

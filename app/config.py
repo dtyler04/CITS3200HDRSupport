@@ -21,6 +21,9 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")             # your OTP gmail
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")             # 16-char Gmail App Password
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER") or MAIL_USERNAME
-
     MAIL_SUPPRESS_SEND = os.getenv("MAIL_SUPPRESS_SEND", "false").lower() == "true"
     TESTING = os.getenv("TESTING", "false").lower() == "true"
+
+    # file uploads for support posts
+    UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
+    MAX_CONTENT_LENGTH = 4 * 1024 * 1024  # 4 MB

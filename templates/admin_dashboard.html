@@ -1,72 +1,225 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-        <div class="container mt-5">
-                <h2>Admin Dashboard</h2>
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs" id="adminTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="true">Email Editor</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="rights-tab" data-bs-toggle="tab"
-                                        data-bs-target="#rights" type="button" role="tab"
-                                        aria-controls="rights" aria-selected="false">
-                                        Manage User
-                                </button>
-                        </li>
-                        <!-- Add more tabs here -->
-                </ul>
-                <!-- Tab panes -->
-                <div class="tab-content mt-3">
-                        <div class="tab-pane fade show active" id="email" role="tabpanel" aria-labelledby="email-tab">
-                                <h4>Create / Manage Emails</h4>
-                                {% include "email_editor.html" %}
-                        </div>
 
-                        <!-- Authority tab -->
-                        <div class="tab-pane fade" id="rights" role="tabpanel" aria-labelledby="rights-tab">
-                        <h4>Admin Authority</h4>
-                        <div class="row">
-                                <div class="col-md-6">
-                                <form method="post" action="{{ url_for('admin.change_right') }}" class="mb-4 p-3 border rounded bg-light">
-                                        <h5>Change User Permission</h5>
-                                        {{ form_right.hidden_tag() }}
-                                        <div class="mb-3">
-                                        {{ form_right.user_id.label(class="form-label") }}
-                                        {{ form_right.user_id(class="form-control", placeholder="User ID") }}
-                                        {% for e in form_right.user_id.errors %}
-                                                <div class="text-danger small">{{ e }}</div>
-                                        {% endfor %}
-                                        </div>
-                                        <div class="mb-3">
-                                        {{ form_right.permission_number.label(class="form-label") }}
-                                        {{ form_right.permission_number(class="form-select") }}
-                                        {% for e in form_right.permission_number.errors %}
-                                                <div class="text-danger small">{{ e }}</div>
-                                        {% endfor %}
-                                        </div>
-                                        {{ form_right.submit(class="btn btn-primary") }}
-                                </form>
-                                </div>
-                                <div class="col-md-6">
-                                <form method="post" action="{{ url_for('admin.delete_account') }}" class="mb-4 p-3 border rounded bg-light">
-                                        <h5>Delete User Account</h5>
-                                        <p class="mb-2">Delete a user from both the database and Mailchimp. <span class="text-danger">This action cannot be undone.</span></p>
-                                        {{ form_delete.hidden_tag() }}
-                                        <div class="mb-3">
-                                                {{ form_delete.user_id.label(class="form-label") }}
-                                                {{ form_delete.user_id(class="form-control", placeholder="User ID") }}
-                                                {% for e in form_delete.user_id.errors %}
-                                                        <div class="text-danger small">{{ e }}</div>
-                                                {% endfor %}
-                                        </div>
-                                        {{ form_delete.submit(class="btn btn-danger", value="Delete User") }}
-                                </form>
-                                </div>
-                        </div>
-                        </div>
-                        <!-- Add more tab panes here -->
-                </div>
+<h1>Admin Dashboard</h1>
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs mt-3" id="adminTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="compose-tab" data-bs-toggle="tab" data-bs-target="#compose" type="button" role="tab" aria-controls="compose" aria-selected="true">
+      Compose / Manage
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="false">
+      Email Editor
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="rights-tab" data-bs-toggle="tab" data-bs-target="#rights" type="button" role="tab" aria-controls="rights" aria-selected="false">
+      Manage User
+    </button>
+  </li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content mt-3">
+
+  <!-- Compose / Manage -->
+  <div class="tab-pane fade show active" id="compose" role="tabpanel" aria-labelledby="compose-tab">
+    <div class="row">
+      <div class="col-lg-6">
+        <!-- Create Message -->
+        <div class="card p-3 mb-3">
+          <h5>Create Message</h5>
+          <form method="post" action="{{ url_for('admin.admin_create_message') }}">
+            {{ msg_form.hidden_tag() }}
+
+            <div class="mb-2">
+              {{ msg_form.title.label }}
+              {{ msg_form.title(class_='form-control') }}
+            </div>
+
+            {# Support either `message_content` or `content` #}
+            {% set _content_field = msg_form.message_content if msg_form.message_content is defined else msg_form.content %}
+            <div class="mb-2">
+              {{ _content_field.label }}
+              {{ _content_field(class_='form-control') }}
+            </div>
+
+            <div class="mb-2">
+              <label>Schedule</label>
+              <input type="datetime-local" name="scheduled_at" class="form-control">
+            </div>
+
+            <div class="mb-2">
+              {{ msg_form.degree_type_target.label }}
+              {{ msg_form.degree_type_target(class_='form-select') }}
+            </div>
+            <div class="mb-2">
+              {{ msg_form.location_target.label }}
+              {{ msg_form.location_target(class_='form-select') }}
+            </div>
+            <div class="mb-2">
+              {{ msg_form.stage_target.label }}
+              {{ msg_form.stage_target(class_='form-select') }}
+            </div>
+
+            <button class="btn btn-primary">{{ msg_form.submit.label.text }}</button>
+          </form>
         </div>
+
+        <!-- Create Reminder -->
+        <div class="card p-3 mb-3">
+          <h5>Create Reminder</h5>
+          <form method="post" action="{{ url_for('admin.admin_create_reminder') }}">
+            {{ rem_form.hidden_tag() }}
+            <div class="mb-2">{{ rem_form.title.label }}{{ rem_form.title(class_='form-control') }}</div>
+            <div class="mb-2">{{ rem_form.content.label }}{{ rem_form.content(class_='form-control') }}</div>
+            <div class="mb-2">
+              <label>Schedule</label>
+              <input type="datetime-local" name="scheduled_at" class="form-control">
+            </div>
+            <div class="mb-2">{{ rem_form.degree_type_target.label }}{{ rem_form.degree_type_target(class_='form-select') }}</div>
+            <div class="mb-2">{{ rem_form.location_target.label }}{{ rem_form.location_target(class_='form-select') }}</div>
+            <div class="mb-2">{{ rem_form.stage_target.label }}{{ rem_form.stage_target(class_='form-select') }}</div>
+            <button class="btn btn-primary">{{ rem_form.submit.label.text }}</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <!-- Support Post -->
+        <div class="card p-3 mb-3">
+          <h5>Support Post</h5>
+          <form method="post" action="{{ url_for('admin.admin_create_post') }}" enctype="multipart/form-data">
+            {{ post_form.hidden_tag() }}
+            <div class="mb-2">{{ post_form.title.label }}{{ post_form.title(class_='form-control') }}</div>
+            <div class="mb-2">{{ post_form.content.label }}{{ post_form.content(class_='form-control') }}</div>
+            <div class="mb-2">{{ post_form.image.label }}{{ post_form.image(class_='form-control') }}</div>
+            <button class="btn btn-primary">{{ post_form.submit.label.text }}</button>
+          </form>
+        </div>
+
+        <!-- Support Contacts -->
+        <div class="card p-3">
+          <h5>Support Contacts</h5>
+          <form method="post" action="{{ url_for('admin.admin_create_contact') }}">
+            {{ contact_form.hidden_tag() }}
+            <div class="mb-2">{{ contact_form.service_type.label }}{{ contact_form.service_type(class_='form-control') }}</div>
+            <div class="mb-2">{{ contact_form.name.label }}{{ contact_form.name(class_='form-control') }}</div>
+            <div class="mb-2">{{ contact_form.info.label }}{{ contact_form.info(class_='form-control') }}</div>
+            <button class="btn btn-primary">{{ contact_form.submit.label.text }}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+    <h4>Existing messages & reminders</h4>
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Messages</h5>
+        <ul class="list-group">
+          {% for m in messages %}
+          <li class="list-group-item">
+            <strong>{{ m.title }}</strong>
+            — scheduled: {{ m.scheduled_at }}
+            — targets: {{ m.degree_type_target or 'all' }}, {{ m.location_target or 'all' }}, {{ m.stage_target or 'all' }}
+            <div class="small">
+              {{ m.message_content if m.message_content is defined else m.content }}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <h5>Reminders</h5>
+        <ul class="list-group">
+          {% for r in reminders %}
+          <li class="list-group-item">
+            <strong>{{ r.title }}</strong> — at {{ r.scheduled_at }}
+            — targets: {{ r.degree_type_target or 'all' }}, {{ r.location_target or 'all' }}, {{ r.stage_target or 'all' }}
+            <div class="small">{{ r.content }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <hr>
+    <h4>Support posts</h4>
+    <ul class="list-group">
+      {% for p in posts %}
+      <li class="list-group-item">
+        <strong>{{ p.title }}</strong> — {{ p.created_at }}
+        <div>{{ p.content }}</div>
+        {% if p.image_filename %}
+          <img src="{{ url_for('uploaded_file', filename=p.image_filename) }}" class="img-fluid mt-2" style="max-height:160px;">
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+
+    <h4 class="mt-4">Support contacts</h4>
+    <ul class="list-group">
+      {% for c in contacts %}
+      <li class="list-group-item">
+        <strong>{{ c.service_type }}</strong>: {{ c.name }} — {{ c.info }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Email Editor -->
+  <div class="tab-pane fade" id="email" role="tabpanel" aria-labelledby="email-tab">
+    <h4>Create / Manage Emails</h4>
+    {% include "email_editor.html" %}
+  </div>
+
+  <!-- Manage User (rights) -->
+  <div class="tab-pane fade" id="rights" role="tabpanel" aria-labelledby="rights-tab">
+    <h4>Admin Authority</h4>
+    <div class="row">
+      <div class="col-md-6">
+        <form method="post" action="{{ url_for('admin.change_right') }}" class="mb-4 p-3 border rounded bg-light">
+          <h5>Change User Permission</h5>
+          {{ form_right.hidden_tag() }}
+          <div class="mb-3">
+            {{ form_right.user_id.label(class="form-label") }}
+            {{ form_right.user_id(class="form-control", placeholder="User ID") }}
+            {% for e in form_right.user_id.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form_right.permission_number.label(class="form-label") }}
+            {{ form_right.permission_number(class="form-select") }}
+            {% for e in form_right.permission_number.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+          {{ form_right.submit(class="btn btn-primary") }}
+        </form>
+      </div>
+
+      <div class="col-md-6">
+        <form method="post" action="{{ url_for('admin.delete_account') }}" class="mb-4 p-3 border rounded bg-light">
+          <h5>Delete User Account</h5>
+          <p class="mb-2">Delete a user from both the database and Mailchimp. <span class="text-danger">This action cannot be undone.</span></p>
+          {{ form_delete.hidden_tag() }}
+          <div class="mb-3">
+            {{ form_delete.user_id.label(class="form-label") }}
+            {{ form_delete.user_id(class="form-control", placeholder="User ID") }}
+            {% for e in form_delete.user_id.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+          {{ form_delete.submit(class="btn btn-danger", value="Delete User") }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

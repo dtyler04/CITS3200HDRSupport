@@ -1,8 +1,11 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app 
-from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm
-from .models import Right, Message, User
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory
+from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm
+from .models import Right, Message, User, Reminder, SupportPost, SupportContact
 from .check import login_and_rights_required
 from . import db
+from werkzeug.utils import secure_filename
+from datetime import datetime
+import random, os
 
 # Name the blueprint
 admin_bp = Blueprint('admin', __name__,url_prefix='/admin')
@@ -10,10 +13,17 @@ admin_bp = Blueprint('admin', __name__,url_prefix='/admin')
 @admin_bp.get("/admin-dashboard")
 @login_and_rights_required(1) # Put permission number according(.e.g admin)
 def admin_dashboard():
+    messages = Message.query.order_by(Message.scheduled_at.desc().nullslast()).all()
+    reminders = Reminder.query.order_by(Reminder.scheduled_at.desc()).all()
+    posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
+    contacts = SupportContact.query.order_by(SupportContact.service_type).all()
+
     return render_template("admin_dashboard.html", 
                            form=EmailEditor(), 
                            form_right=ChangeRightForm(),
-                           form_delete=DeleteAccountForm()
+                           form_delete=DeleteAccountForm(),
+                           msg_form=AdminMessageForm(), rem_form=AdminReminderForm(), post_form=SupportPostForm(), contact_form=SupportContactForm(),
+                           messages=messages, reminders=reminders, posts=posts, contacts=contacts
                            )
 
 @admin_bp.post("/admin-dashboard")
@@ -111,3 +121,104 @@ def delete_account():
     else:
         flash("Invalid form submission.", "danger")
     return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/message/create")
+@login_and_rights_required(1)
+def admin_create_message():
+    form = AdminMessageForm()
+    if form.validate_on_submit():
+        sched = None
+        if form.scheduled_at.data:
+            try:
+                sched = datetime.fromisoformat(form.scheduled_at.data)
+            except Exception:
+                sched = None
+        m = Message(
+            title = form.title.data,
+            content = form.message_content.data,
+            degreeCode = "ALL" , # Placeholder, adjust as needed
+            week_released = 1,  # Placeholder, adjust as needed
+            scheduled_at = sched,
+            degree_type_target = form.degree_type_target.data or None,
+            location_target = form.location_target.data or None,
+            stage_target = form.stage_target.data or None
+        )
+        db.session.add(m)
+        db.session.commit()
+        flash("Message created.", "success")
+    else:
+        flash("Invalid message data.", "danger")
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/reminder/create")
+@login_and_rights_required(1)
+def admin_create_reminder():
+    form = AdminReminderForm()
+    if form.validate_on_submit():
+        try:
+            sched = datetime.fromisoformat(form.scheduled_at.data)
+        except Exception:
+            flash("Invalid datetime format for reminder.", "danger")
+            return redirect(url_for("admin.admin_dashboard"))
+        r = Reminder(
+            title=form.title.data,
+            content=form.content.data,
+            scheduled_at=sched,
+            degree_type_target = form.degree_type_target.data or None,
+            location_target = form.location_target.data or None,
+            stage_target = form.stage_target.data or None
+        )
+        db.session.add(r)
+        db.session.commit()
+        flash("Reminder scheduled.", "success")
+    else:
+        flash("Invalid reminder data.", "danger")
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/support_post/create")
+@login_and_rights_required(1)
+def admin_create_post():
+    def allowed_file(filename):
+        ALLOWED_EXTENSIONS = {'png','jpg','jpeg','gif'}
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    
+    form = SupportPostForm()
+    if form.validate_on_submit():
+        filename = None
+        file = request.files.get('image')
+        if file and file.filename and allowed_file(file.filename):
+            fname = secure_filename(file.filename)
+            upload_dir = current_app.config.get('UPLOAD_FOLDER')
+            os.makedirs(upload_dir, exist_ok=True)
+            file.save(os.path.join(upload_dir, fname))
+            filename = fname
+        post = SupportPost(title=form.title.data, content=form.content.data, image_filename=filename)
+        db.session.add(post)
+        db.session.commit()
+        flash("Support post created.", "success")
+    else:
+        flash("Invalid support post.", "danger")
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/contact/create")
+@login_and_rights_required(1)
+def admin_create_contact():
+    form = SupportContactForm()
+    if form.validate_on_submit():
+        contact = SupportContact(
+            contact_id=random.randint(1, 10000), # Double check, temporary
+            service_type=form.service_type.data,
+            name=form.name.data, 
+            info=form.info.data
+        )
+        db.session.add(contact)
+        db.session.commit()
+        flash("Support contact created.", "success")
+    else:
+        flash("Invalid support contact.", "danger")
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.get("uploads/<path:filename>")
+@login_and_rights_required(1)
+def uploaded_file(filename):
+    return send_from_directory(current_app.config.get('UPLOAD_FOLDER'), filename)
