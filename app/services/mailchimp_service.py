@@ -21,11 +21,13 @@ class MailchimpService:
     def ping(self):
         return self.client.ping.get()
 
-    def upsert_member(self, email, first_name="", last_name="", status_if_new="pending"):
+    # Add or update a member in the mailing list
+    def upsert_member(self, email, first_name="", last_name="", status_if_new="subscribed", status='subscribed'):
         sub_hash = self._subscriber_hash(email)
         body = {
             "email_address": email,
             "status_if_new": status_if_new,
+            "status": status,
             "merge_fields": {"FNAME": first_name, "LNAME": last_name}
         }
         try:
@@ -58,3 +60,25 @@ class MailchimpService:
             return self.client.lists.delete_list_member(self.list_id, sub_hash)
         except Exception as e:
             return False
+
+    # Use this when a student enrolls/starts a unit  
+    def add_unit_tag(self, email, unit_code):
+        sub_hash = self._subscriber_hash(email)
+        body = {
+            "tags": [{"name": unit_code, "status": "active"}]
+        }
+        try:
+            return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
+        except ApiClientError as e:
+            print("Mailchimp API error:", e.text)
+            raise
+
+    # Use this when a student unenrolls/finishes from a unit
+    def remove_unit_tag(self, email, unit_code):
+        sub_hash = self._subscriber_hash(email)
+        body = {"tags": [{"name": unit_code, "status": "inactive"}]}
+        try:
+            return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
+        except ApiClientError as e:
+            print("Mailchimp API error (remove_unit_tag):", getattr(e, "text", str(e)))
+            raise

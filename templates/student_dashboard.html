@@ -122,6 +122,37 @@
                 <li>Upcoming reminders: <strong>{{ reminders|length }}</strong></li>
             </ul>
         </div>
+        <div class="card p-3 mb-4">
+        <h5>Your Enrollment Information</h5>
+            <ul class="list-unstyled small">
+                {% for uu in user_units %}
+                <li class="d-flex justify-content-between align-items-center">
+                    <span>
+                    <strong>{{ uu.unit_code }}</strong>
+                    {% if uu.enrolled_at %}
+                        <span class="text-muted">— since {{ uu.enrolled_at.date() }}</span>
+                    {% endif %}
+                    </span>
+
+                    <form method="post" action="{{ url_for('unit.unenroll', unit_code=uu.unit_code) }}" class="ms-2">
+                        {{ unit_unenroll_form.hidden_tag() }}  
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Unenroll</button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="text-muted">No units yet. Enroll to see them here.</li>
+                {% endfor %}
+
+                {# (optional) enroll row at the bottom #}
+                <li class="mt-2">
+                <form method="post" action="{{ url_for('unit.enroll') }}" class="d-flex gap-2 align-items-center">
+                    {{ unit_enroll_form.hidden_tag() }}
+                    {{ unit_enroll_form.unit_code(class_='form-control form-control-sm', placeholder='CITS3200') }}
+                    {{ unit_enroll_form.submit(class_='btn btn-sm btn-outline-success', value='Enroll') }}
+                </form>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 

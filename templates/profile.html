@@ -1,5 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Student Profile{% endblock %}
+{% block header_button %}
+<!-- Dropdown menu: Welcome page + Logout -->
+<div class="dropdown">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+        Menu
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+        <li><a class="dropdown-item" href="{{ url_for('main.index') }}">Welcome Page</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('main.logout') }}">Logout</a></li>
+    </ul>
+</div>
+{% endblock %}
 {% block content %}
   <!-- Navigation bar (reuse from student dashboard) -->
   <nav class="navbar">

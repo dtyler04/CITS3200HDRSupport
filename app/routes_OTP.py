@@ -72,12 +72,10 @@ def verify_submit():
 
     mailchimp = current_app.extensions["mailchimp"]
     try:
-        mailchimp.add_member(
-            email=user.email,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            status="subscribed"
-        )
+        mailchimp.upsert_member(email=user.email,
+                                first_name=user.first_name,
+                                last_name=user.last_name
+                                )
     except Exception as e:
         flash("Warning: Could not subscribe to mailing list.", "warning")
 

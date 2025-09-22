@@ -106,3 +106,10 @@ class SupportContactForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     info = StringField('Contact info', validators=[DataRequired()])
     submit = SubmitField('Save Contact')
+
+class UnitEnrollmentForm(FlaskForm):
+    unit_code = StringField('Unit Code', validators=[DataRequired(), Length(min=8, max=8)])
+    submit = SubmitField('Enroll')
+
+class CSRFOnlyForm(FlaskForm):
+    submit = SubmitField("Unenroll")

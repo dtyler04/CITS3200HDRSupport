@@ -16,7 +16,7 @@ class User(db.Model):
 
     rights = db.relationship('Right', backref='user', lazy='select', cascade="all, delete-orphan", passive_deletes=False)
     updates = db.relationship('EnrollmentUpdate', backref='user', lazy='select', cascade="all, delete-orphan", passive_deletes=False)
-
+    user_units = db.relationship("Unit", backref="user", cascade="all, delete-orphan", lazy="select")
     def is_verified(self):
         return self.email_verified_at is not None
 class Right(db.Model):
@@ -46,6 +46,15 @@ class Enrollment(db.Model):
 
     updates = db.relationship('EnrollmentUpdate', backref='enrollment', lazy=True)
     messages = db.relationship('Message', backref='enrollment', lazy=True)
+
+class Unit(db.Model):
+    __tablename__ = 'Units'
+    user_id   = db.Column(db.Integer,
+                          db.ForeignKey("Users.user_id", ondelete="CASCADE"),
+                          primary_key=True, index=True)
+    unit_code = db.Column(db.String(8), primary_key=True)
+    enrolled_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+
 class Message(db.Model):
     __tablename__ = 'Messages'
     message_id = db.Column(db.Integer, primary_key=True)
