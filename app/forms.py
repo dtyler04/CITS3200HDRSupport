@@ -1,7 +1,48 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField, HiddenField
-from wtforms.validators import DataRequired, InputRequired, Length, Email, NumberRange, Optional
+from wtforms.validators import DataRequired, InputRequired, Length, Email, NumberRange, Optional, ValidationError
 from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectField, RadioField, TextAreaField, FileField, HiddenField
+import re
+
+class UnitListValidator:
+    UNIT_RE = re.compile(r'^[A-Za-z]{4}\d{4}$')
+    ALL_TOKENS = {'', 'ALL', '*', 'ANY'}
+
+    def __init__(self, max_units=10):
+        self.max_units = max_units
+
+    @staticmethod
+    def parse_units(s):
+        # split on spaces/commas/semicolons/newlines
+        parts = re.split(r'[\s,;]+', (s or '').strip())
+        # uppercase + de-duplicate (preserve order)
+        out, seen = [], set()
+        for p in parts:
+            u = p.upper()
+            if u and u not in seen:
+                seen.add(u)
+                out.append(u)
+        return out
+
+    def __call__(self, form, field):
+        # handle special tokens(e.g. "ALL")
+        raw = (field.data or '').strip().upper()
+        if raw in self.ALL_TOKENS:
+            field.unit_list = None       
+            field.data = ''              
+            return
+        
+        units = self.parse_units(field.data)
+        if not units:
+            raise ValidationError("Enter at least one unit code.")
+        bad = [u for u in units if not self.UNIT_RE.fullmatch(u)]
+        if bad:
+            raise ValidationError(f"Invalid unit(s): {', '.join(bad)}")
+        if self.max_units and len(units) > self.max_units:
+            raise ValidationError(f"Please enter at most {self.max_units} unit codes.")
+        # expose the parsed list and normalise the field text
+        field.unit_list = units
+        field.data = " ".join(units)
 
 class LoginForm(FlaskForm):
     user_id = IntegerField('UserID', validators=[DataRequired()])
@@ -97,12 +138,14 @@ class AdminReminderForm(FlaskForm):
 
 class SupportPostForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(max=200)])
+    unit_target = StringField('Unit-target', validators=[DataRequired(), UnitListValidator(max_units=10)], render_kw={'placeholder': 'all for ALL, or enter codes e.g. CITS3001 CITS3002'})
     content = TextAreaField('Content', validators=[DataRequired()])
     image = FileField('Image (optional)', validators=[Optional()])
     submit = SubmitField('Post')
 
 class SupportContactForm(FlaskForm):
     service_type = StringField('Service type', validators=[DataRequired()])
+    unit_target = StringField('Unit-target', validators=[DataRequired(), UnitListValidator(max_units=10)], render_kw={'placeholder': 'all for ALL, or enter codes e.g. CITS3001 CITS3002'})
     name = StringField('Name', validators=[DataRequired()])
     info = StringField('Contact info', validators=[DataRequired()])
     submit = SubmitField('Save Contact')

@@ -81,6 +81,7 @@ class SupportPost(db.Model):
     __tablename__ = 'SupportPosts'
     post_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
+    unit_target = db.Column(db.String(500), nullable=True)  # comma-separated unit codes, or NULL for all
     content = db.Column(db.Text, nullable=False)
     image_filename = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -89,6 +90,7 @@ class SupportContact(db.Model):
     __tablename__ = 'SupportContacts'
     contact_id = db.Column(db.Integer, primary_key=True)
     service_type = db.Column(db.String(100), nullable=False)   # e.g. 'Mental Health'
+    unit_target = db.Column(db.String(500), nullable=False)    # comma-separated unit codes, or NULL for all
     name = db.Column(db.String(200), nullable=False)
     info = db.Column(db.String(300), nullable=False)
 class Assessments(db.Model):
