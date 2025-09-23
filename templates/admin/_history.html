@@ -1,0 +1,73 @@
+{% import "admin/_forms.html" as ui %}
+
+<!-- count messages and reminders-->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="mb-0">Existing messages & reminders</h4>
+  <div class="small text-muted">{{ messages|length }} messages . {{ reminders|length }} reminders</div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Messages</span>
+        <span class="badge text-bg-secondary">{{ messages|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for m in messages %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="fw-semibold me-2">{{ m.title }}</div>
+              <span class="badge text-bg-light text-body-secondary">
+                {{ m.scheduled_at.strftime('%d %b %Y, %H:%M') if m.scheduled_at else 'Now' }}
+              </span>
+            </div>
+            <div class="mt-2 small">
+              <span class="badge rounded-pill border bg-primary-subtle text-primary-emphasis me-1">{{ m.degree_type_target or 'All degrees' }}</span>
+              <span class="badge rounded-pill border bg-success-subtle text-success-emphasis me-1">{{ m.location_target or 'All locations' }}</span>
+              <span class="badge rounded-pill border bg-info-subtle text-info-emphasis me-1">{{ m.stage_target or 'All stages' }}</span>
+              {{ ui.unit_chips(m.unit_target) }}
+            </div>
+            <p class="mb-0 mt-2 small text-body-secondary">
+              {{ m.message_content if m.message_content is defined else m.content }}
+            </p>
+          </li>
+        {% else %}
+          <li class="list-group-item text-muted">No messages.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Reminders</span>
+        <span class="badge text-bg-secondary">{{ reminders|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for r in reminders %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="fw-semibold me-2">{{ r.title }}</div>
+              <span class="badge text-bg-light text-body-secondary">
+                {{ r.scheduled_at.strftime('%d %b %Y, %H:%M') if r.scheduled_at else '—' }}
+              </span>
+            </div>
+            <div class="mt-2 small">
+              <span class="badge rounded-pill border bg-primary-subtle text-primary-emphasis me-1">{{ r.degree_type_target or 'All degrees' }}</span>
+              <span class="badge rounded-pill border bg-success-subtle text-success-emphasis me-1">{{ r.location_target or 'All locations' }}</span>
+              <span class="badge rounded-pill border bg-info-subtle text-info-emphasis me-1">{{ r.stage_target or 'All stages' }}</span>
+              {{ ui.unit_chips(r.unit_target) }}
+            </div>
+            <p class="mb-0 mt-2 small text-body-secondary">{{ r.content }}</p>
+          </li>
+        {% else %}
+          <li class="list-group-item text-muted">No reminders.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<hr class="my-4">

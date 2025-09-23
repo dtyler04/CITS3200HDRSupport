@@ -1,0 +1,70 @@
+{% import "admin/_forms.html" as ui %}
+
+<div class="row">
+  <div class="col-lg-6">
+    <!-- Create Message -->
+    <div class="card p-3 mb-3">
+      <h5>Create Message</h5>
+      <form method="post" action="{{ url_for('admin.admin_create_message') }}">
+        {{ msg_form.hidden_tag() }}
+        {{ ui.group(msg_form.title) }}
+        {% set _content = msg_form.message_content if msg_form.message_content is defined else msg_form.content %}
+        {{ ui.group(_content) }}
+        <div class="mb-2">
+          <label>Schedule</label>
+          <input type="datetime-local" name="scheduled_at" class="form-control">
+        </div>
+        {{ ui.group(msg_form.degree_type_target, 'form-select') }}
+        {{ ui.group(msg_form.location_target, 'form-select') }}
+        {{ ui.group(msg_form.stage_target, 'form-select') }}
+        <button class="btn btn-primary">{{ msg_form.submit.label.text }}</button>
+      </form>
+    </div>
+
+    <!-- Create Reminder -->
+    <div class="card p-3 mb-3">
+      <h5>Create Reminder</h5>
+      <form method="post" action="{{ url_for('admin.admin_create_reminder') }}">
+        {{ rem_form.hidden_tag() }}
+        {{ ui.group(rem_form.title) }}
+        {{ ui.group(rem_form.content) }}
+        <div class="mb-2">
+          <label>Schedule</label>
+          <input type="datetime-local" name="scheduled_at" class="form-control">
+        </div>
+        {{ ui.group(rem_form.degree_type_target, 'form-select') }}
+        {{ ui.group(rem_form.location_target, 'form-select') }}
+        {{ ui.group(rem_form.stage_target, 'form-select') }}
+        <button class="btn btn-primary">{{ rem_form.submit.label.text }}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <!-- Support Post -->
+    <div class="card p-3 mb-3">
+      <h5>Support Post</h5>
+      <form method="post" action="{{ url_for('admin.admin_create_post') }}" enctype="multipart/form-data">
+        {{ post_form.hidden_tag() }}
+        {{ ui.group(post_form.title) }}
+        {{ ui.group(post_form.unit_target) }}
+        {{ ui.group(post_form.content) }}
+        {{ ui.group(post_form.image) }}
+        <button class="btn btn-primary">{{ post_form.submit.label.text }}</button>
+      </form>
+    </div>
+
+    <!-- Support Contacts -->
+    <div class="card p-3">
+      <h5>Support Contacts</h5>
+      <form method="post" action="{{ url_for('admin.admin_create_contact') }}">
+        {{ contact_form.hidden_tag() }}
+        {{ ui.group(contact_form.service_type) }}
+        {{ ui.group(contact_form.unit_target) }}
+        {{ ui.group(contact_form.name) }}
+        {{ ui.group(contact_form.info) }}
+        <button class="btn btn-primary">{{ contact_form.submit.label.text }}</button>
+      </form>
+    </div>
+  </div>
+</div>

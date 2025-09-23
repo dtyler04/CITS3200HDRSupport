@@ -1,0 +1,100 @@
+{% import "admin/_forms.html" as ui %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Support posts</span>
+        <span class="badge text-bg-secondary">{{ posts|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for p in posts %}
+          <li id="post-{{ p.post_id }}" class="list-group-item"> 
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="fw-semibold me-2">{{ p.title }}</div>
+
+              <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted">
+                  {{ p.created_at.strftime('%d %b %Y, %H:%M') if p.created_at }}
+                </span>
+
+                <form method="post"
+                      action="{{ url_for('admin.admin_delete_post', post_id=p.post_id) }}"
+                      hx-post="{{ url_for('admin.admin_delete_post', post_id=p.post_id) }}"
+                      hx-target="#post-{{ p.post_id }}"
+                      hx-swap="outerHTML"
+                      hx-disabled-elt="button"
+                      class="m-0">
+                  {{ csrf_form.hidden_tag() }}
+                  <button class="btn btn-outline-danger btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
+                          style="width:28px;height:28px"
+                          title="Delete">
+                    <i class="bi bi-trash3"></i>
+                    <span class="visually-hidden">Delete</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="mt-2 small">
+              <span class="text-muted me-1">Units:</span>
+              {{ ui.unit_chips(p.unit_target) }}
+            </div>
+
+            <div class="small mt-1">{{ p.content }}</div>
+
+            {% if p.image_filename %}
+              <img src="{{ url_for('uploaded_file', filename=p.image_filename) }}"
+                   class="img-thumbnail mt-2"
+                   style="max-height:180px; object-fit:cover;">
+            {% endif %}
+          </li>
+        {% else %}
+          <li class="list-group-item text-muted">No support posts.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Support contacts</span>
+        <span class="badge text-bg-secondary">{{ contacts|length }}</span>
+      </div>
+      <ul id="contacts-list" class="list-group list-group-flush">
+        {% for c in contacts %}
+          <li id="contact-{{ c.contact_id }}" class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <!-- LEFT: contact info -->
+              <div>
+                <div class="fw-semibold">{{ c.service_type }}</div>
+                <div class="small">{{ c.name }} — <span class="text-muted">{{ c.info }}</span></div>
+                <div class="mt-2 small">
+                  <span class="text-muted me-1">Units:</span>
+                  {{ ui.unit_chips(c.unit_target|default('', true)) }}
+                </div>
+              </div>
+
+              <!-- RIGHT: delete button -->
+              <form method="post"
+                    hx-post="{{ url_for('admin.admin_delete_contact', contact_id=c.contact_id) }}"
+                    hx-target="#contact-{{ c.contact_id }}"
+                    hx-swap="outerHTML"
+                    hx-disabled-elt="button"
+                    class="m-0">
+                {{ csrf_form.hidden_tag() }}
+                <button type="submit"
+                        class="btn btn-outline-danger btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
+                        style="width:28px;height:28px" title="Delete">
+                  <i class="bi bi-trash3"></i><span class="visually-hidden">Delete</span>
+                </button>
+              </form>
+            </div>
+          </li>
+        {% else %}
+          <li class="list-group-item text-muted">No support contacts.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>

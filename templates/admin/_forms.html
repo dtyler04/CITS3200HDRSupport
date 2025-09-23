@@ -1,0 +1,22 @@
+{% macro group(field, cls='form-control') -%}
+  <div class="mb-2">
+    {{ field.label }}
+    {{ field(class_=cls) }}
+    {% if field.errors %}
+      <div class="text-danger small">{{ field.errors|join(', ') }}</div>
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro unit_chips(units_string) -%}
+  {# Normalise: handle None, trim, uppercase #}
+  {% set s = (units_string or '').strip().upper() %}
+  {% if not s or s in ['ALL', '*', 'ANY'] %}
+    <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis">All</span>
+  {% else %}
+    {% for u in s.split() %}
+      <span class="badge rounded-pill border bg-dark-subtle text-dark-emphasis me-1">{{ u }}</span>
+    {% endfor %}
+  {% endif %}
+{% endmacro %}
+

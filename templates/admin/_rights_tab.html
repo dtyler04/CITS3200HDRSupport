@@ -1,0 +1,33 @@
+<div class="row">
+  <div class="col-md-6">
+    <form method="post" action="{{ url_for('admin.change_right') }}" class="mb-4 p-3 border rounded bg-light">
+      <h5>Change User Permission</h5>
+      {{ form_right.hidden_tag() }}
+      <div class="mb-3">
+        {{ form_right.user_id.label(class="form-label") }}
+        {{ form_right.user_id(class="form-control", placeholder="User ID") }}
+        {% for e in form_right.user_id.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="mb-3">
+        {{ form_right.permission_number.label(class="form-label") }}
+        {{ form_right.permission_number(class="form-select") }}
+        {% for e in form_right.permission_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      {{ form_right.submit(class="btn btn-primary") }}
+    </form>
+  </div>
+
+  <div class="col-md-6">
+    <form method="post" action="{{ url_for('admin.delete_account') }}" class="mb-4 p-3 border rounded bg-light">
+      <h5>Delete User Account</h5>
+      <p class="mb-2">Delete a user from both the database and Mailchimp. <span class="text-danger">This action cannot be undone.</span></p>
+      {{ form_delete.hidden_tag() }}
+      <div class="mb-3">
+        {{ form_delete.user_id.label(class="form-label") }}
+        {{ form_delete.user_id(class="form-control", placeholder="User ID") }}
+        {% for e in form_delete.user_id.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      {{ form_delete.submit(class="btn btn-danger", value="Delete User") }}
+    </form>
+  </div>
+</div>
