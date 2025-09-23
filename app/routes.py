@@ -170,39 +170,3 @@ def preview_email(user_id):
         return messages, assessments
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
-
-@main_bp.post("/units/enroll")
-@login_required
-def enroll():
-    form = UnitEnrollmentForm()
-    if form.validate_on_submit():
-        unit_code = form.unit_code.data.strip().upper()
-        if Unit.query.filter_by(user_id=session['uid'], unit_code=unit_code).first():
-            flash(f"Already enrolled in {unit_code}.", "info")
-            return redirect(url_for("main.student_dashboard"))
-        unit_add = Unit(user_id=session['uid'], unit_code=unit_code)
-        db.session.add(unit_add)
-        db.session.commit()
-        flash(f"Enrolled in {unit_code} successfully!", "success")
-    return redirect(url_for("main.student_dashboard"))
-
-@main_bp.post("/units/unenroll/<string:unit_code>")
-@login_required
-def unenroll(unit_code):
-    form = CSRFOnlyForm()
-    if form.validate_on_submit():
-        code = unit_code.strip().upper()
-        link = Unit.query.filter_by(user_id=session['uid'], unit_code=code).first()
-        if link:
-            db.session.delete(link)
-            db.session.commit()
-        flash(f"Unenrolled from {unit_code} successfully!", "success")
-    else:
-        flash(f"Unit {unit_code} not found in your enrollments.", "danger")
-    return redirect(url_for("main.student_dashboard"))
-
-@main_bp.get("/units/enrollments/all")
-@login_required
-def view_enrollments():
-    enrollments = Unit.query.filter_by(user_id=session['uid']).all()
-    return render_template("enrollments.html", enrollments=enrollments)

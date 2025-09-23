@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory
-from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm
+from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm
 from .models import Right, Message, User, Reminder, SupportPost, SupportContact
 from .check import login_and_rights_required
 from . import db
@@ -18,7 +18,8 @@ def admin_dashboard():
     posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
     contacts = SupportContact.query.order_by(SupportContact.service_type).all()
 
-    return render_template("admin_dashboard.html", 
+    return render_template("admin/admin_dashboard.html", 
+                           csrf_form=CSRFOnlyForm(),
                            form=EmailEditor(), 
                            form_right=ChangeRightForm(),
                            form_delete=DeleteAccountForm(),
@@ -53,7 +54,7 @@ def change_right():
         return redirect(url_for("admin.admin_dashboard"))
 
     email_form = EmailEditor()
-    return render_template("admin_dashboard.html", form=email_form, form_right=form)
+    return render_template("admin/admin_dashboard.html", form=email_form, form_right=form)
 
 @admin_bp.get("/messages/select")
 @login_and_rights_required(1) # Put permission number according(.e.g admin)
@@ -185,14 +186,17 @@ def admin_create_post():
     form = SupportPostForm()
     if form.validate_on_submit():
         filename = None
-        file = request.files.get('image')
+        file = form.image.data
         if file and file.filename and allowed_file(file.filename):
             fname = secure_filename(file.filename)
             upload_dir = current_app.config.get('UPLOAD_FOLDER')
             os.makedirs(upload_dir, exist_ok=True)
             file.save(os.path.join(upload_dir, fname))
             filename = fname
-        post = SupportPost(title=form.title.data, content=form.content.data, image_filename=filename)
+
+        units = getattr(form.unit_target, "unit_list", None)
+        unit_target_str = "" if units is None else " ".join(units) # None means "all units"
+        post = SupportPost(title=form.title.data, content=form.content.data, image_filename=filename,unit_target=unit_target_str)
         db.session.add(post)
         db.session.commit()
         flash("Support post created.", "success")
@@ -200,16 +204,45 @@ def admin_create_post():
         flash("Invalid support post.", "danger")
     return redirect(url_for("admin.admin_dashboard"))
 
+@admin_bp.post("/support_post/<int:post_id>/delete")
+@login_and_rights_required(1)
+def admin_delete_post(post_id):
+    form = CSRFOnlyForm()
+    if not form.validate_on_submit():
+        flash("Invalid delete request.", "danger")
+        return redirect(url_for("admin.admin_dashboard"))
+
+    post = db.session.get(SupportPost, post_id)
+    if not post:
+        flash("Post not found.", "warning")
+        return redirect(url_for("admin.admin_dashboard"))
+
+    # optional: remove image file from disk
+    if post.image_filename:
+        path = os.path.join(current_app.config["UPLOAD_FOLDER"], post.image_filename)
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+
+    db.session.delete(post)
+    db.session.commit()
+    flash("Support post deleted.", "success")
+    return "", 200 # Return empty response for HTMX
+
 @admin_bp.post("/contact/create")
 @login_and_rights_required(1)
 def admin_create_contact():
     form = SupportContactForm()
     if form.validate_on_submit():
+        units = getattr(form.unit_target, "unit_list", None)
+        unit_target_str = "" if units is None else " ".join(units)
         contact = SupportContact(
             contact_id=random.randint(1, 10000), # Double check, temporary
-            service_type=form.service_type.data,
-            name=form.name.data, 
-            info=form.info.data
+            service_type=form.service_type.data.strip(),
+            name=form.name.data.strip(), 
+            info=form.info.data.strip(),
+            unit_target=unit_target_str
         )
         db.session.add(contact)
         db.session.commit()
@@ -217,6 +250,24 @@ def admin_create_contact():
     else:
         flash("Invalid support contact.", "danger")
     return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/contact/<int:contact_id>/delete")
+@login_and_rights_required(1)
+def admin_delete_contact(contact_id):
+    form = CSRFOnlyForm()
+    if not form.validate_on_submit():
+        flash("Invalid delete request.", "danger")
+        return redirect(url_for("admin.admin_dashboard"))
+
+    c = db.session.get(SupportContact, contact_id)
+    if not c:
+        flash("Contact not found.", "warning")
+        return redirect(url_for("admin.admin_dashboard"))
+
+    db.session.delete(c)
+    db.session.commit()
+    flash("Support contact deleted.", "success")
+    return "", 200 # Return empty response for HTMX
 
 @admin_bp.get("uploads/<path:filename>")
 @login_and_rights_required(1)

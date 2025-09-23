@@ -17,7 +17,6 @@ def enroll():
         unit_add = Unit(user_id=session['uid'], unit_code=unit_code)
         db.session.add(unit_add)
         db.session.commit()
-        print(session['email'], unit_code)
         mailchimp.add_unit_tag(session['email'], unit_code)
         flash(f"Enrolled in {unit_code} successfully!", "success")
     return redirect(url_for("main.student_dashboard"))
@@ -25,20 +24,27 @@ def enroll():
 @unit_bp.post("/unenroll/<string:unit_code>")
 @login_required
 def unenroll(unit_code):
-    print('hello',flush=True)
     form = CSRFOnlyForm()
     mailchimp = current_app.extensions["mailchimp"]
-    if form.validate_on_submit():
-        code = unit_code.strip().upper()
-        print(code)
-        link = Unit.query.filter_by(user_id=session['uid'], unit_code=code).first()
-        print(link)
-        if link:
-            db.session.delete(link)
-            db.session.commit()
-            print(session['email'], unit_code)
-            mailchimp.remove_unit_tag(session['email'], unit_code)
-        flash(f"Unenrolled from {unit_code} successfully!", "success")
+
+    valid = form.validate_on_submit()
+
+    if not valid:
+        flash("Form/CSRF invalid.", "danger")
+        return redirect(url_for("main.student_dashboard"))
+
+    code = unit_code.strip().upper()
+    current_app.logger.info(f"unenroll(): code={code}")
+
+    link = Unit.query.filter_by(user_id=session['uid'], unit_code=code).first()
+    current_app.logger.info(f"unenroll(): link_found={bool(link)}")
+
+    if link:
+        db.session.delete(link)
+        db.session.commit()
+        mailchimp.remove_unit_tag(session['email'], code)
+        flash(f"Unenrolled from {unit_code} successfully.", "success")
     else:
-        flash(f"Unit {unit_code} not found in your enrollments.", "danger")
+        flash(f"Unit {code} not found in your enrollments.", "danger")
+
     return redirect(url_for("main.student_dashboard"))
