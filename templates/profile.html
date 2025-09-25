@@ -7,11 +7,11 @@
     <div class="dropdown">
       <button class="dropbtn">Menu ▼</button>
       <div class="dropdown-content">
-        <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('main.student_dashboard') }}">Dashboard</a>
         <a href="messages.html">Messages</a>
         <a href="reminders.html">Reminders</a>
         <a href="wellbeing.html">Wellbeing</a>
-        <a href="profile.html">Profile</a> <!-- ✅ New profile link -->
+        <a href="{{ url_for('main.profile') }}">Profile</a>
       </div>
     </div>
   </nav>

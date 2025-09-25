@@ -7,4 +7,6 @@ flask_sqlalchemy
 email-validator
 Werkzeug
 python-dotenv
+mailchimp-marketing
+flask-mail
 flask_migrate
