@@ -1,11 +1,153 @@
 {% extends "base.html" %}
 {% block title %}Student Dashboard{% endblock %}
+{% block header_button %}
+<!-- Dropdown menu: Welcome page + Logout -->
+<div class="dropdown">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+        Menu
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+        <li><a class="dropdown-item" href="{{ url_for('main.index') }}">Welcome Page</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('main.logout') }}">Logout</a></li>
+    </ul>
+</div>
+{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col">
-        <h1 class="mb-4">Student Dashboard</h1>
-        <!-- Dashboard content here -->
-        <p>Welcome to your dashboard! Here you can manage your courses, view your progress, and access resources.</p>
+        <h1 class="mb-2">Welcome back, {{ first_name }}!</h1>
+        <p class="text-muted">Here is a quick overview of your reminders, messages and wellbeing support.</p>
     </div>
 </div>
+
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="m-0">Reminders & Messages</h3>
+                <div>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="type">
+                        <button id="showReminders" class="btn btn-outline-primary active">Reminders</button>
+                        <button id="showMessages" class="btn btn-outline-primary">Messages</button>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2" role="group" aria-label="view">
+                        <button id="viewList" class="btn btn-outline-secondary active">List</button>
+                        <button id="viewCalendar" class="btn btn-outline-secondary">Calendar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reminders-list">
+                <ul class="list-group">
+                    {% for r in reminders %}
+                    <li class="list-group-item">
+                        <strong>{{ r.title }}</strong>
+                        <div class="small text-muted">{{ r.scheduled_at }}</div>
+                        <div>{{ r.content }}</div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">No reminders.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div id="messages-list" style="display:none;">
+                <ul class="list-group">
+                    {% for m in messages %}
+                    <li class="list-group-item">
+                        <strong>{{ m.title }}</strong>
+                        <div class="small text-muted">{{ m.scheduled_at }}</div>
+                        <div>{{ m.message_content }}</div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">No messages.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div id="reminders-calendar" style="display:none;">
+                <p class="small text-muted">Calendar view (dummy)</p>
+                <table class="table table-sm"><thead><tr><th>Date</th><th>Event</th></tr></thead><tbody>
+                    {% for r in reminders %}
+                    <tr><td>{{ r.scheduled_at.date() }}</td><td>{{ r.title }}</td></tr>
+                    {% endfor %}
+                </tbody></table>
+            </div>
+
+            <div id="messages-calendar" style="display:none;">
+                <p class="small text-muted">Calendar view (dummy)</p>
+                <table class="table table-sm"><thead><tr><th>Date</th><th>Message</th></tr></thead><tbody>
+                    {% for m in messages %}
+                    <tr><td>{{ m.scheduled_at.date() if m.scheduled_at else 'Now' }}</td><td>{{ m.title }}</td></tr>
+                    {% endfor %}
+                </tbody></table>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4">
+            <h4 class="mb-3">Student Wellbeing Support</h4>
+            {% for post in wellbeing_posts %}
+            <div class="mb-3">
+                <h5 class="mb-1">{{ post.title }}</h5>
+                <div class="small text-muted">{{ post.created_at }}</div>
+                <p class="mb-1">{{ post.content }}</p>
+                {% if post.image_filename %}
+                  <img src="{{ url_for('uploaded_file', filename=post.image_filename) }}" class="img-fluid mt-2" style="max-height:220px;">
+                {% endif %}
+            </div>
+            <hr>
+            {% else %}
+            <p class="text-muted">No wellbeing posts yet.</p>
+            {% endfor %}
+
+            <h5 class="mt-3">Contact & Support</h5>
+            <ul class="list-unstyled">
+                {% for c in contacts %}
+                <li class="mb-2">
+                    <strong>{{ c.service_type }}:</strong> {{ c.name }} — <span class="text-muted">{{ c.info }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card p-3 mb-4">
+            <h5>Your quick stats</h5>
+            <ul class="list-unstyled small">
+                <li>Unread messages: <strong>{{ messages|length }}</strong></li>
+                <li>Upcoming reminders: <strong>{{ reminders|length }}</strong></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnRem = document.getElementById('showReminders');
+    const btnMsg = document.getElementById('showMessages');
+    const btnList = document.getElementById('viewList');
+    const btnCal = document.getElementById('viewCalendar');
+
+    function showSection(type, view) {
+        document.getElementById('reminders-list').style.display = 'none';
+        document.getElementById('messages-list').style.display = 'none';
+        document.getElementById('reminders-calendar').style.display = 'none';
+        document.getElementById('messages-calendar').style.display = 'none';
+        const id = (type === 'reminders' ? 'reminders' : 'messages') + '-' + (view === 'calendar' ? 'calendar' : 'list');
+        document.getElementById(id).style.display = 'block';
+    }
+
+    btnRem.addEventListener('click', function(){ btnRem.classList.add('active'); btnMsg.classList.remove('active'); showSection('reminders', btnCal.classList.contains('active') ? 'calendar' : 'list'); });
+    btnMsg.addEventListener('click', function(){ btnMsg.classList.add('active'); btnRem.classList.remove('active'); showSection('messages', btnCal.classList.contains('active') ? 'calendar' : 'list'); });
+
+    btnList.addEventListener('click', function(){ btnList.classList.add('active'); btnCal.classList.remove('active'); showSection(btnRem.classList.contains('active') ? 'reminders' : 'messages', 'list'); });
+    btnCal.addEventListener('click', function(){ btnCal.classList.add('active'); btnList.classList.remove('active'); showSection(btnRem.classList.contains('active') ? 'reminders' : 'messages', 'calendar'); });
+
+    showSection('reminders', 'list');
+});
+</script>
 {% endblock %}
