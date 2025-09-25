@@ -167,13 +167,13 @@ def preview_email(user_id):
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
 
-@app.get("/tinymce-test")
+@main_bp.get("/tinymce-test")
 @login_required
 def tinymce_test():
     """Test page for TinyMCE editor"""
     return render_template("tinyMCE.html")
 
-@app.post("/tinymce-test")
+@main_bp.post("/tinymce-test")
 @login_required  
 def save_tinymce_test():
     """Handle TinyMCE test form submission"""
@@ -186,4 +186,4 @@ def save_tinymce_test():
     flash(f"TinyMCE test saved! Title: {test_title}, Content length: {len(content)} characters", "success")
     print(f"TinyMCE Test Content: {content[:200]}..." if len(content) > 200 else content)
     
-    return redirect(url_for('tinymce_test'))
+    return redirect(url_for('main.tinymce_test'))
