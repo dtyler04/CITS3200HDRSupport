@@ -6,9 +6,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import time
 from functools import wraps #decorators behave
 import os
-from datetime import datetime
+from datetime import datetime, timedelta  # Added timedelta import
 from flask import request, current_app, send_from_directory
 from werkzeug.utils import secure_filename
+from flask import jsonify
 
 ALLOWED_EXT = {'png','jpg','jpeg','gif'}
 
@@ -106,7 +107,6 @@ def signup():
     flash("Invalid or existing credentials!", "danger")
     return render_template("signup.html", signup_form=signup_form)
 
-
 @app.route("/student-dashboard")
 @login_required
 def student_dashboard():
@@ -120,12 +120,28 @@ def student_dashboard():
     degree_type = None
     location = None
     stage = None
+    start_date = None
+    progress_percentage = 0
+
     if enrollment_update:
         degree = Enrollment.query.filter_by(degreeCode=enrollment_update.degreeCode).first()
         degree_type = degree.degree_type if degree else None
         location = enrollment_update.location
-        # You may want to store 'stage' in EnrollmentUpdate or elsewhere
-        stage = None  # Set this if you have it
+        # Assume stage is stored in StudentSignUpForm or elsewhere; for now, use form data
+        stage = None  # Update if stage is stored elsewhere
+
+        # Estimate start date from earliest EnrollmentUpdate
+        earliest_update = EnrollmentUpdate.query.filter_by(user_id=user.user_id).order_by(EnrollmentUpdate.update_id.asc()).first()
+        if earliest_update:
+            # Assume update_id is a timestamp (as per signup route)
+            start_date = datetime.fromtimestamp(earliest_update.update_id)
+            # Calculate progress based on degree type
+            current_date = datetime.utcnow()
+            # Assume typical durations: Masters = 2 years, PhD = 3 years
+            duration_years = 2 if degree_type == 'masters' else 3
+            total_days = duration_years * 365
+            days_passed = (current_date - start_date).days
+            progress_percentage = min(100, max(0, (days_passed / total_days) * 100))
 
     # Filter reminders/messages for this user
     reminders = Reminder.query.filter(
@@ -146,11 +162,60 @@ def student_dashboard():
     return render_template(
         "student_dashboard.html",
         first_name=user.first_name,
+        user=user,
+        enrollment_update=enrollment_update,
+        degree_type=degree_type,
+        start_date=start_date,
+        progress_percentage=round(progress_percentage, 1),
         reminders=reminders,
         messages=messages,
         wellbeing_posts=wellbeing_posts,
         contacts=contacts
     )
+
+@app.route('/get_events')
+@login_required
+def get_events():
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify([])
+
+    try:
+        selected_date = datetime.fromisoformat(date_str).date()
+        user = User.query.filter_by(user_id=session.get('uid')).first()
+        enrollment_update = EnrollmentUpdate.query.filter_by(user_id=user.user_id).order_by(EnrollmentUpdate.update_id.desc()).first()
+        degree_type = Enrollment.query.filter_by(degreeCode=enrollment_update.degreeCode).first().degree_type if enrollment_update else None
+        location = enrollment_update.location if enrollment_update else None
+        stage = None  # Update if stage is stored
+
+        # Create datetime objects for the start and end of the selected date
+        start_datetime = datetime.combine(selected_date, datetime.min.time())
+        end_datetime = start_datetime + timedelta(days=1)
+
+        reminders = Reminder.query.filter(
+            (Reminder.scheduled_at >= start_datetime) & (Reminder.scheduled_at < end_datetime),
+            (Reminder.degree_type_target == None) | (Reminder.degree_type_target == degree_type),
+            (Reminder.location_target == None) | (Reminder.location_target == location),
+            (Reminder.stage_target == None) | (Reminder.stage_target == stage)
+        ).all()
+
+        messages = Message.query.filter(
+            (Message.scheduled_at >= start_datetime) & (Message.scheduled_at < end_datetime),
+            (Message.degree_type_target == None) | (Message.degree_type_target == degree_type),
+            (Message.location_target == None) | (Message.location_target == location),
+            (Message.stage_target == None) | (Message.stage_target == stage)
+        ).all()
+
+        events = [
+            {'title': r.title, 'scheduled_at': r.scheduled_at.strftime('%H:%M'), 'content': r.content}
+            for r in reminders
+        ] + [
+            {'title': m.title, 'scheduled_at': m.scheduled_at.strftime('%H:%M') if m.scheduled_at else 'Now', 'message_content': m.message_content}
+            for m in messages
+        ]
+        return jsonify(events)
+    except Exception as e:
+        return jsonify([])
 
 @app.get("/admin")
 @login_required

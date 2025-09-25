@@ -15,8 +15,9 @@
                 <h3 class="m-0">Reminders & Messages</h3>
                 <div>
                     <div class="btn-group btn-group-sm" role="group" aria-label="type">
-                        <button id="showReminders" class="btn btn-outline-primary active">Reminders</button>
+                        <button id="showReminders" class="btn btn-outline-primary">Reminders</button>
                         <button id="showMessages" class="btn btn-outline-primary">Messages</button>
+                        <button id="showAll" class="btn btn-outline-primary active">All</button>
                     </div>
                     <div class="btn-group btn-group-sm ms-2" role="group" aria-label="view">
                         <button id="viewList" class="btn btn-outline-secondary active">List</button>
@@ -25,12 +26,19 @@
                 </div>
             </div>
 
-            <div id="reminders-list">
-                <ul class="list-group">
+            <!-- Calendar Date Selector (only shown in calendar view) -->
+            <div id="calendar-selector" style="display:none;" class="mb-3">
+                <label for="date-picker" class="form-label">Select Date:</label>
+                <input type="date" id="date-picker" class="form-control" style="max-width: 200px;">
+            </div>
+
+            <!-- List Views -->
+            <div id="reminders-list" style="display:none;">
+                <ul class="list-group" style="max-height: 400px; overflow-y: auto;">
                     {% for r in reminders %}
                     <li class="list-group-item">
                         <strong>{{ r.title }}</strong>
-                        <div class="small text-muted">{{ r.scheduled_at }}</div>
+                        <div class="small text-muted">{{ r.scheduled_at.strftime('%Y-%m-%d %H:%M') if r.scheduled_at else 'No date' }}</div>
                         <div>{{ r.content }}</div>
                     </li>
                     {% else %}
@@ -40,11 +48,11 @@
             </div>
 
             <div id="messages-list" style="display:none;">
-                <ul class="list-group">
+                <ul class="list-group" style="max-height: 400px; overflow-y: auto;">
                     {% for m in messages %}
                     <li class="list-group-item">
                         <strong>{{ m.title }}</strong>
-                        <div class="small text-muted">{{ m.scheduled_at }}</div>
+                        <div class="small text-muted">{{ m.scheduled_at.strftime('%Y-%m-%d %H:%M') if m.scheduled_at else 'Now' }}</div>
                         <div>{{ m.message_content }}</div>
                     </li>
                     {% else %}
@@ -53,22 +61,55 @@
                 </ul>
             </div>
 
-            <div id="reminders-calendar" style="display:none;">
-                <p class="small text-muted">Calendar view (dummy)</p>
-                <table class="table table-sm"><thead><tr><th>Date</th><th>Event</th></tr></thead><tbody>
+            <div id="all-list">
+                <ul class="list-group" style="max-height: 400px; overflow-y: auto;">
+                    {% set combined_items = [] %}
                     {% for r in reminders %}
-                    <tr><td>{{ r.scheduled_at.date() }}</td><td>{{ r.title }}</td></tr>
+                        {% set _ = combined_items.append(('reminder', r)) %}
                     {% endfor %}
-                </tbody></table>
+                    {% for m in messages %}
+                        {% set _ = combined_items.append(('message', m)) %}
+                    {% endfor %}
+                    {% if combined_items %}
+                        {% for item_type, item in combined_items|sort(attribute='1.scheduled_at')|reverse %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong>{{ item.title }}</strong>
+                                    <div class="small text-muted">
+                                        {{ item.scheduled_at.strftime('%Y-%m-%d %H:%M') if item.scheduled_at else 'Now' }}
+                                    </div>
+                                    <div>{{ item.content if item_type == 'reminder' else item.message_content }}</div>
+                                </div>
+                                <span class="badge bg-{{ 'primary' if item_type == 'reminder' else 'info' }} ms-2">
+                                    {{ 'Reminder' if item_type == 'reminder' else 'Message' }}
+                                </span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                    <li class="list-group-item text-muted">No reminders or messages.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Calendar Views -->
+            <div id="reminders-calendar" style="display:none;">
+                <div id="reminders-calendar-content">
+                    <p class="small text-muted">Select a date above to view reminders for that day.</p>
+                </div>
             </div>
 
             <div id="messages-calendar" style="display:none;">
-                <p class="small text-muted">Calendar view (dummy)</p>
-                <table class="table table-sm"><thead><tr><th>Date</th><th>Message</th></tr></thead><tbody>
-                    {% for m in messages %}
-                    <tr><td>{{ m.scheduled_at.date() if m.scheduled_at else 'Now' }}</td><td>{{ m.title }}</td></tr>
-                    {% endfor %}
-                </tbody></table>
+                <div id="messages-calendar-content">
+                    <p class="small text-muted">Select a date above to view messages for that day.</p>
+                </div>
+            </div>
+
+            <div id="all-calendar" style="display:none;">
+                <div id="all-calendar-content">
+                    <p class="small text-muted">Select a date above to view all items for that day.</p>
+                </div>
             </div>
         </div>
 
@@ -92,7 +133,7 @@
             <ul class="list-unstyled">
                 {% for c in contacts %}
                 <li class="mb-2">
-                    <strong>{{ c.service_type }}:</strong> {{ c.name }} — <span class="text-muted">{{ c.info }}</span>
+                    <strong>{{ c.service_type }}:</strong> {{ c.name }} â€" <span class="text-muted">{{ c.info }}</span>
                 </li>
                 {% endfor %}
             </ul>
@@ -107,32 +148,217 @@
                 <li>Upcoming reminders: <strong>{{ reminders|length }}</strong></li>
             </ul>
         </div>
+
+        <!-- My Profile Section -->
+            <div class="col-md-14">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>My Profile</h3>
+                        <p><strong>First Name:</strong> {{ user.first_name }}</p>
+                        <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+                        <p><strong>Student ID:</strong> {{ user.user_id }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Location:</strong> {{ enrollment_update.location | capitalize }}</p>
+                        <p><strong>Degree Type:</strong> {{ degree_type | capitalize }}</p>
+                        <p><strong>Study Mode:</strong> {{ enrollment_update.study_mode.replace('-', ' ') | title }}</p>
+                        <p><strong>Degree Code:</strong> {{ enrollment_update.degreeCode }}</p>
+                        <h5>Candidature Progress</h5>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ progress_percentage }}%
+                            </div>
+                        </div>
+                        <p><small>Started: {{ start_date.strftime('%Y-%m-%d') if start_date else 'Unknown' }}</small></p>
+                    </div>
+                </div>
+            </div>
     </div>
+    <div class="container mt-5 pb-5"></div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const btnRem = document.getElementById('showReminders');
     const btnMsg = document.getElementById('showMessages');
+    const btnAll = document.getElementById('showAll');
     const btnList = document.getElementById('viewList');
     const btnCal = document.getElementById('viewCalendar');
+    const datePicker = document.getElementById('date-picker');
+    const calendarSelector = document.getElementById('calendar-selector');
 
-    function showSection(type, view) {
+    let currentType = 'all';
+    let currentView = 'list';
+
+    function hideAllSections() {
         document.getElementById('reminders-list').style.display = 'none';
         document.getElementById('messages-list').style.display = 'none';
+        document.getElementById('all-list').style.display = 'none';
         document.getElementById('reminders-calendar').style.display = 'none';
         document.getElementById('messages-calendar').style.display = 'none';
-        const id = (type === 'reminders' ? 'reminders' : 'messages') + '-' + (view === 'calendar' ? 'calendar' : 'list');
-        document.getElementById(id).style.display = 'block';
+        document.getElementById('all-calendar').style.display = 'none';
     }
 
-    btnRem.addEventListener('click', function(){ btnRem.classList.add('active'); btnMsg.classList.remove('active'); showSection('reminders', btnCal.classList.contains('active') ? 'calendar' : 'list'); });
-    btnMsg.addEventListener('click', function(){ btnMsg.classList.add('active'); btnRem.classList.remove('active'); showSection('messages', btnCal.classList.contains('active') ? 'calendar' : 'list'); });
+    function showSection(type, view) {
+        hideAllSections();
+        
+        // Show/hide calendar selector
+        if (view === 'calendar') {
+            calendarSelector.style.display = 'block';
+        } else {
+            calendarSelector.style.display = 'none';
+        }
 
-    btnList.addEventListener('click', function(){ btnList.classList.add('active'); btnCal.classList.remove('active'); showSection(btnRem.classList.contains('active') ? 'reminders' : 'messages', 'list'); });
-    btnCal.addEventListener('click', function(){ btnCal.classList.add('active'); btnList.classList.remove('active'); showSection(btnRem.classList.contains('active') ? 'reminders' : 'messages', 'calendar'); });
+        const sectionId = type + '-' + view;
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = 'block';
+        }
+    }
 
-    showSection('reminders', 'list');
+    function updateActiveButtons() {
+        // Update type buttons
+        [btnRem, btnMsg, btnAll].forEach(btn => btn.classList.remove('active'));
+        if (currentType === 'reminders') btnRem.classList.add('active');
+        else if (currentType === 'messages') btnMsg.classList.add('active');
+        else if (currentType === 'all') btnAll.classList.add('active');
+
+        // Update view buttons
+        [btnList, btnCal].forEach(btn => btn.classList.remove('active'));
+        if (currentView === 'list') btnList.classList.add('active');
+        else if (currentView === 'calendar') btnCal.classList.add('active');
+    }
+
+    function loadCalendarData(selectedDate) {
+        if (!selectedDate) return;
+
+        // Make AJAX request to get events for the selected date
+        fetch(`/get_events?date=${selectedDate}`)
+            .then(response => response.json())
+            .then(events => {
+                updateCalendarContent(events, selectedDate);
+            })
+            .catch(error => {
+                console.error('Error fetching events:', error);
+                updateCalendarContent([], selectedDate);
+            });
+    }
+
+    function updateCalendarContent(events, selectedDate) {
+        const remindersContent = document.getElementById('reminders-calendar-content');
+        const messagesContent = document.getElementById('messages-calendar-content');
+        const allContent = document.getElementById('all-calendar-content');
+
+        const reminders = events.filter(e => e.content !== undefined);
+        const messages = events.filter(e => e.message_content !== undefined);
+
+        // Update reminders calendar content
+        if (reminders.length === 0) {
+            remindersContent.innerHTML = `<p class="text-muted">No reminders for ${selectedDate}.</p>`;
+        } else {
+            remindersContent.innerHTML = '<ul class="list-group">' +
+                reminders.map(r => `
+                    <li class="list-group-item">
+                        <strong>${r.title}</strong>
+                        <div class="small text-muted">${r.scheduled_at}</div>
+                        <div>${r.content}</div>
+                    </li>
+                `).join('') + '</ul>';
+        }
+
+        // Update messages calendar content
+        if (messages.length === 0) {
+            messagesContent.innerHTML = `<p class="text-muted">No messages for ${selectedDate}.</p>`;
+        } else {
+            messagesContent.innerHTML = '<ul class="list-group">' +
+                messages.map(m => `
+                    <li class="list-group-item">
+                        <strong>${m.title}</strong>
+                        <div class="small text-muted">${m.scheduled_at}</div>
+                        <div>${m.message_content}</div>
+                    </li>
+                `).join('') + '</ul>';
+        }
+
+        // Update all calendar content
+        if (events.length === 0) {
+            allContent.innerHTML = `<p class="text-muted">No items for ${selectedDate}.</p>`;
+        } else {
+            allContent.innerHTML = '<ul class="list-group">' +
+                events.map(item => `
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>${item.title}</strong>
+                                <div class="small text-muted">${item.scheduled_at}</div>
+                                <div>${item.content || item.message_content}</div>
+                            </div>
+                            <span class="badge bg-${item.content !== undefined ? 'primary' : 'info'} ms-2">
+                                ${item.content !== undefined ? 'Reminder' : 'Message'}
+                            </span>
+                        </div>
+                    </li>
+                `).join('') + '</ul>';
+        }
+    }
+
+    // Event listeners for type buttons
+    btnRem.addEventListener('click', function() {
+        currentType = 'reminders';
+        updateActiveButtons();
+        showSection(currentType, currentView);
+        if (currentView === 'calendar' && datePicker.value) {
+            loadCalendarData(datePicker.value);
+        }
+    });
+
+    btnMsg.addEventListener('click', function() {
+        currentType = 'messages';
+        updateActiveButtons();
+        showSection(currentType, currentView);
+        if (currentView === 'calendar' && datePicker.value) {
+            loadCalendarData(datePicker.value);
+        }
+    });
+
+    btnAll.addEventListener('click', function() {
+        currentType = 'all';
+        updateActiveButtons();
+        showSection(currentType, currentView);
+        if (currentView === 'calendar' && datePicker.value) {
+            loadCalendarData(datePicker.value);
+        }
+    });
+
+    // Event listeners for view buttons
+    btnList.addEventListener('click', function() {
+        currentView = 'list';
+        updateActiveButtons();
+        showSection(currentType, currentView);
+    });
+
+    btnCal.addEventListener('click', function() {
+        currentView = 'calendar';
+        updateActiveButtons();
+        showSection(currentType, currentView);
+        if (datePicker.value) {
+            loadCalendarData(datePicker.value);
+        }
+    });
+
+    // Date picker event listener
+    datePicker.addEventListener('change', function() {
+        if (currentView === 'calendar') {
+            loadCalendarData(this.value);
+        }
+    });
+
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    datePicker.value = today;
+
+    // Initialize the view
+    updateActiveButtons();
+    showSection(currentType, currentView);
 });
 </script>
 {% endblock %}

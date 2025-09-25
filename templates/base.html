@@ -18,8 +18,10 @@
 
         <!-- Dropdown menu: Welcome page + Logout -->
         <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                Menu
+            <button class="btn btn-hdr" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; width: 40px; height: 32px; padding: 4px; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='var(--uwa-dark)'; this.querySelectorAll('span').forEach(span => span.style.backgroundColor='var(--uwa-gold)')" onmouseout="this.style.backgroundColor='var(--uwa-gold)'; this.querySelectorAll('span').forEach(span => span.style.backgroundColor='var(--uwa-dark)')">
+                <span style="display: block; width: 20px; height: 2px; background-color: var(--uwa-dark); border-radius: 1px; transition: background-color 0.3s;"></span>
+                <span style="display: block; width: 20px; height: 2px; background-color: var(--uwa-dark); border-radius: 1px; transition: background-color 0.3s;"></span>
+                <span style="display: block; width: 20px; height: 2px; background-color: var(--uwa-dark); border-radius: 1px; transition: background-color 0.3s;"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                 <li><a class="dropdown-item" href="{{ url_for('index') }}">Welcome Page</a></li>
