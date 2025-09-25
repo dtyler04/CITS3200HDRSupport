@@ -197,3 +197,24 @@ def get_student_updates(user_id, lookahead_weeks=2):
 def preview_email(user_id):
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
+
+@main_bp.get("/tinymce-test")
+@login_required
+def tinymce_test():
+    """Test page for TinyMCE editor"""
+    return render_template("tinyMCE.html")
+
+@main_bp.post("/tinymce-test")
+@login_required  
+def save_tinymce_test():
+    """Handle TinyMCE test form submission"""
+    content = request.form.get('content', '')
+    test_title = request.form.get('test_title', 'Untitled')
+    degree_code = request.form.get('degree_code', 'TEST')
+    week_released = request.form.get('week_released', 1)
+    
+    # For testing purposes, just flash the content length and redirect back
+    flash(f"TinyMCE test saved! Title: {test_title}, Content length: {len(content)} characters", "success")
+    print(f"TinyMCE Test Content: {content[:200]}..." if len(content) > 200 else content)
+    
+    return redirect(url_for('main.tinymce_test'))
