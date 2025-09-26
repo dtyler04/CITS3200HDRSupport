@@ -106,3 +106,7 @@ class SupportContactForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     info = StringField('Contact info', validators=[DataRequired()])
     submit = SubmitField('Save Contact')
+
+class ResetPasswordRequestForm(FlaskForm):
+# create a class for reset password containing user id, email, submit button
+# Create a class for new password containing new password, confirm password, submit button
