@@ -107,6 +107,22 @@ class SupportContactForm(FlaskForm):
     info = StringField('Contact info', validators=[DataRequired()])
     submit = SubmitField('Save Contact')
 
+
+# Class for resetting password containing user id, email, and submit button
 class ResetPasswordRequestForm(FlaskForm):
-# create a class for reset password containing user id, email, submit button
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    submit = SubmitField("Request Reset")
+
 # Create a class for new password containing new password, confirm password, submit button
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField(
+        "New Password",
+        validators=[DataRequired(), Length(min=6, message="Password must be at least 6 characters.")],
+        render_kw={"placeholder": "Enter new password"}
+    )
+    confirm_password = PasswordField(
+        "Confirm Password",
+        validators=[DataRequired(), Length(min=6),],
+        render_kw={"placeholder": "Confirm new password"}
+    )
+    submit = SubmitField("Update Password")
