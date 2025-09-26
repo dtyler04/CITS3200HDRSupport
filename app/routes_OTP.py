@@ -103,3 +103,24 @@ def resend_submit():
 
     flash("We sent you a new 6-digit code.", "info")
     return redirect(url_for("otp.verify_page"))
+
+@otp_bp.post("/verify-code")
+def verify_code():
+    form = VerifyOTPForm()
+    if form.validate_on_submit():
+        email = session.get("pending_verify_email")
+        if not email:
+            flash("No email pending verification. Please sign up first.", "warning")
+            return redirect(url_for("main.signup_page"))
+
+        if _svc().verify_otp(email, form.code.data):
+            flash("Code verified successfully!", "success")
+            return redirect(url_for("main.login_page"))
+        else:
+            flash("Invalid or expired code.", "danger")
+    else:
+        flash("Enter the 6-digit code.", "danger")
+    return redirect(url_for("otp.verify_page"))
+
+# Create another route for verifying reset password
+# When approved, send a request form to reset password
