@@ -124,3 +124,26 @@ def verify_code():
 
 # Create another route for verifying reset password
 # When approved, send a request form to reset password
+@otp_bp.post("/verify-reset")
+def verify_reset_submit():
+    """Verify OTP for password reset."""
+    form = VerifyOTPForm()
+
+    if not form.validate_on_submit():
+        flash("Enter the 6-digit code.", "danger")
+        return redirect(url_for("main.reset_password"))
+
+    email = session.get("pending_verify_email")
+    if not email:
+        flash("No email pending verification. Please request reset again.", "warning")
+        return redirect(url_for("main.reset_password"))
+
+    if not _svc().verify_otp(email, form.code.data):
+        flash("Invalid or expired code.", "danger")
+        return redirect(url_for("main.reset_password"))
+
+    # OTP verified → allow user to set new password
+    session["reset_password_email"] = email
+    session.pop("pending_verify_email", None)
+    flash("OTP verified. Please set your new password.", "success")
+    return redirect(url_for("main.update_password"))
