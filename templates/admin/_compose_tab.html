@@ -5,7 +5,11 @@
     <!-- Create Message -->
     <div class="card p-3 mb-3">
       <h5>Create Message</h5>
-      <form method="post" action="{{ url_for('admin.admin_create_message') }}">
+      <form method="post" action="{{ url_for('admin.admin_create_message') }}"
+            hx-post="{{ url_for('admin.admin_create_message') }}"
+            hx-target="#history"
+            hx-swap="outerHTML"
+            hx-on::form-success="this.reset()">
         {{ msg_form.hidden_tag() }}
         {{ ui.group(msg_form.title) }}
         {% set _content = msg_form.message_content if msg_form.message_content is defined else msg_form.content %}
@@ -24,7 +28,11 @@
     <!-- Create Reminder -->
     <div class="card p-3 mb-3">
       <h5>Create Reminder</h5>
-      <form method="post" action="{{ url_for('admin.admin_create_reminder') }}">
+      <form method="post" action="{{ url_for('admin.admin_create_reminder') }}"
+            hx-post="{{ url_for('admin.admin_create_reminder') }}"
+            hx-target="#history"
+            hx-swap="outerHTML"
+            hx-on::form-success="this.reset()">
         {{ rem_form.hidden_tag() }}
         {{ ui.group(rem_form.title) }}
         {{ ui.group(rem_form.content) }}
@@ -44,7 +52,11 @@
     <!-- Support Post -->
     <div class="card p-3 mb-3">
       <h5>Support Post</h5>
-      <form method="post" action="{{ url_for('admin.admin_create_post') }}" enctype="multipart/form-data">
+      <form method="post" action="{{ url_for('admin.admin_create_post') }}" enctype="multipart/form-data"
+            hx-post="{{ url_for('admin.admin_create_post') }}"
+            hx-target="#support-content"
+            hx-swap="outerHTML"
+            hx-on::form-success="this.reset()">
         {{ post_form.hidden_tag() }}
         {{ ui.group(post_form.title) }}
         {{ ui.group(post_form.unit_target) }}
@@ -57,7 +69,11 @@
     <!-- Support Contacts -->
     <div class="card p-3">
       <h5>Support Contacts</h5>
-      <form method="post" action="{{ url_for('admin.admin_create_contact') }}">
+      <form method="post" action="{{ url_for('admin.admin_create_contact') }}"
+            hx-post="{{ url_for('admin.admin_create_contact') }}"
+            hx-target="#support-content"
+            hx-swap="outerHTML"
+            hx-on::form-success="this.reset()">
         {{ contact_form.hidden_tag() }}
         {{ ui.group(contact_form.service_type) }}
         {{ ui.group(contact_form.unit_target) }}

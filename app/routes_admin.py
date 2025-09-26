@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response
 from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm
 from .models import Right, Message, User, Reminder, SupportPost, SupportContact
 from .check import login_and_rights_required
@@ -127,6 +127,7 @@ def delete_account():
 @login_and_rights_required(1)
 def admin_create_message():
     form = AdminMessageForm()
+    created_ok = False
     if form.validate_on_submit():
         sched = None
         if form.scheduled_at.data:
@@ -147,14 +148,25 @@ def admin_create_message():
         db.session.add(m)
         db.session.commit()
         flash("Message created.", "success")
+        created_ok = True
     else:
         flash("Invalid message data.", "danger")
+    # If HTMX request, return the updated history partial
+    if request.headers.get("HX-Request") == "true":
+        messages = Message.query.order_by(Message.scheduled_at.desc().nullslast()).all()
+        reminders = Reminder.query.order_by(Reminder.scheduled_at.desc()).all()
+        html = render_template("admin/_history.html", messages=messages, reminders=reminders)
+        resp = make_response(html)
+        if created_ok:
+            resp.headers["HX-Trigger"] = "form-success"
+        return resp
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/reminder/create")
 @login_and_rights_required(1)
 def admin_create_reminder():
     form = AdminReminderForm()
+    created_ok = False
     if form.validate_on_submit():
         try:
             sched = datetime.fromisoformat(form.scheduled_at.data)
@@ -172,8 +184,18 @@ def admin_create_reminder():
         db.session.add(r)
         db.session.commit()
         flash("Reminder scheduled.", "success")
+        created_ok = True
     else:
         flash("Invalid reminder data.", "danger")
+    # HTMX request -> return updated history list
+    if request.headers.get("HX-Request") == "true":
+        messages = Message.query.order_by(Message.scheduled_at.desc().nullslast()).all()
+        reminders = Reminder.query.order_by(Reminder.scheduled_at.desc()).all()
+        html = render_template("admin/_history.html", messages=messages, reminders=reminders)
+        resp = make_response(html)
+        if created_ok:
+            resp.headers["HX-Trigger"] = "form-success"
+        return resp
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/support_post/create")
@@ -184,6 +206,7 @@ def admin_create_post():
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
     
     form = SupportPostForm()
+    created_ok = False
     if form.validate_on_submit():
         filename = None
         file = form.image.data
@@ -200,8 +223,18 @@ def admin_create_post():
         db.session.add(post)
         db.session.commit()
         flash("Support post created.", "success")
+        created_ok = True
     else:
         flash("Invalid support post.", "danger")
+    # HTMX request -> return updated support content partial
+    if request.headers.get("HX-Request") == "true":
+        posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
+        contacts = SupportContact.query.order_by(SupportContact.service_type).all()
+        html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm())
+        resp = make_response(html)
+        if created_ok:
+            resp.headers["HX-Trigger"] = "form-success"
+        return resp
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/support_post/<int:post_id>/delete")
@@ -234,6 +267,7 @@ def admin_delete_post(post_id):
 @login_and_rights_required(1)
 def admin_create_contact():
     form = SupportContactForm()
+    created_ok = False
     if form.validate_on_submit():
         units = getattr(form.unit_target, "unit_list", None)
         unit_target_str = "" if units is None else " ".join(units)
@@ -247,8 +281,18 @@ def admin_create_contact():
         db.session.add(contact)
         db.session.commit()
         flash("Support contact created.", "success")
+        created_ok = True
     else:
         flash("Invalid support contact.", "danger")
+    # HTMX request -> return updated support content partial
+    if request.headers.get("HX-Request") == "true":
+        posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
+        contacts = SupportContact.query.order_by(SupportContact.service_type).all()
+        html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm())
+        resp = make_response(html)
+        if created_ok:
+            resp.headers["HX-Trigger"] = "form-success"
+        return resp
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/contact/<int:contact_id>/delete")
