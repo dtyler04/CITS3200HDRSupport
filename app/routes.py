@@ -1,5 +1,5 @@
 from .check import login_required
-from .forms import LoginForm, StudentSignUpForm
+from .forms import LoginForm, StudentSignUpForm, ResetPasswordRequestForm
 from .check import login_required
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, request, current_app, send_from_directory, Blueprint
@@ -166,3 +166,28 @@ def preview_email(user_id):
         return messages, assessments
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
+
+@main_bp.get("/reset-password")
+def reset_password():
+    return render_template("reset_password.html")
+
+@main_bp.post("/reset-password")
+def get_form():
+    form = ResetPasswordRequestForm()
+    # Validate form
+
+
+    if form.validate_on_submit():
+        # Process the form data here (e.g., send reset email)
+        svc = current_app.extensions["email_otp"]
+        svc.send_otp(form.email.data)
+        session["pending_verify_email"] = form.email.data
+        
+        flash("If the email exists, a reset link has been sent.", "info")
+        return redirect(url_for("main.login_page"))
+    
+@main_bp.get("/")
+# Create reset password route which is executed when user submits the form
+# The process has to be linked to otp.py
+# Send otp through here
+# Create another route saying update password and direct back to login page
