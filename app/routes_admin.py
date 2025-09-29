@@ -155,7 +155,8 @@ def admin_create_message():
     if request.headers.get("HX-Request") == "true":
         messages = Message.query.order_by(Message.scheduled_at.desc().nullslast()).all()
         reminders = Reminder.query.order_by(Reminder.scheduled_at.desc()).all()
-        html = render_template("admin/_history.html", messages=messages, reminders=reminders)
+        html = render_template("admin/_history.html", messages=messages, reminders=reminders) + \
+               render_template("admin/_flashes.html")
         resp = make_response(html)
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
@@ -191,7 +192,8 @@ def admin_create_reminder():
     if request.headers.get("HX-Request") == "true":
         messages = Message.query.order_by(Message.scheduled_at.desc().nullslast()).all()
         reminders = Reminder.query.order_by(Reminder.scheduled_at.desc()).all()
-        html = render_template("admin/_history.html", messages=messages, reminders=reminders)
+        html = render_template("admin/_history.html", messages=messages, reminders=reminders) + \
+               render_template("admin/_flashes.html")
         resp = make_response(html)
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
@@ -230,7 +232,8 @@ def admin_create_post():
     if request.headers.get("HX-Request") == "true":
         posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
         contacts = SupportContact.query.order_by(SupportContact.service_type).all()
-        html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm())
+        html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm()) + \
+               render_template("admin/_flashes.html")
         resp = make_response(html)
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
@@ -288,7 +291,8 @@ def admin_create_contact():
     if request.headers.get("HX-Request") == "true":
         posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
         contacts = SupportContact.query.order_by(SupportContact.service_type).all()
-        html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm())
+        html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm()) + \
+               render_template("admin/_flashes.html")
         resp = make_response(html)
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
