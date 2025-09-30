@@ -228,7 +228,7 @@
 <script src="{{ url_for('static', filename='tinymce/js/tinymce/tinymce.min.js') }}"></script>
 
 <script>
-// Don't load the original tinymce_test.js - we'll initialize manually for tab compatibility
+// Don't load the original tinymce.js - we'll initialize manually for tab compatibility
 let tinyMCEInitialized = false;
 
 // Initialize TinyMCE when the TinyMCE tab is shown
@@ -310,7 +310,7 @@ function initTinyMCE() {
     });
 }
 
-// Helper functions for TinyMCE testing
+// Helper functions for TinyMCE editor
 function getContent() {
     if (!tinyMCEInitialized || !tinymce.get('tinyMCEEditor')) {
         alert('TinyMCE not initialized yet. Please click on the TinyMCE tab first.');

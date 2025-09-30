@@ -1,5 +1,5 @@
 /**
- * TinyMCE Test Configuration
+ * TinyMCE Configuration
  * Free/GPL version with enhanced paste functionality
  */
 

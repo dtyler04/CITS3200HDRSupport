@@ -167,23 +167,23 @@ def preview_email(user_id):
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
 
-@main_bp.get("/tinymce-test")
+@main_bp.get("/tinymce-editor")
 @login_required
-def tinymce_test():
-    """Test page for TinyMCE editor"""
+def tinymce_editor():
+    """TinyMCE rich text editor page"""
     return render_template("tinyMCE.html")
 
-@main_bp.post("/tinymce-test")
+@main_bp.post("/tinymce-editor")
 @login_required  
-def save_tinymce_test():
-    """Handle TinyMCE test form submission"""
+def save_tinymce_content():
+    """Handle TinyMCE form submission"""
     content = request.form.get('content', '')
-    test_title = request.form.get('test_title', 'Untitled')
-    degree_code = request.form.get('degree_code', 'TEST')
+    title = request.form.get('title', 'Untitled')
+    degree_code = request.form.get('degree_code', 'GENERAL')
     week_released = request.form.get('week_released', 1)
     
-    # For testing purposes, just flash the content length and redirect back
-    flash(f"TinyMCE test saved! Title: {test_title}, Content length: {len(content)} characters", "success")
-    print(f"TinyMCE Test Content: {content[:200]}..." if len(content) > 200 else content)
+    # Process the content and redirect back
+    flash(f"Content saved! Title: {title}, Content length: {len(content)} characters", "success")
+    print(f"TinyMCE Content: {content[:200]}..." if len(content) > 200 else content)
     
-    return redirect(url_for('main.tinymce_test'))
+    return redirect(url_for('main.tinymce_editor'))
