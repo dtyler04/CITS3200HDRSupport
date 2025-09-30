@@ -58,6 +58,26 @@ class Message(db.Model):
     location_target = db.Column(db.String(20), nullable=True)       # 'online','on-campus' or NULL
     stage_target = db.Column(db.String(30), nullable=True)          # 'commencing' etc or NULL
 
+    def __init__(self, **kwargs):
+        # Validate targeting fields
+        valid_degree_types = ['masters', 'phd', None, '']
+        valid_locations = ['online', 'on-campus', None, '']
+        valid_stages = ['commencing', 'mid-candidature', 'late-candidature', 'thesis-submission', None, '']
+        
+        if 'degree_type_target' in kwargs:
+            if kwargs['degree_type_target'] not in valid_degree_types:
+                raise ValueError(f"Invalid degree_type_target: {kwargs['degree_type_target']}")
+        
+        if 'location_target' in kwargs:
+            if kwargs['location_target'] not in valid_locations:
+                raise ValueError(f"Invalid location_target: {kwargs['location_target']}")
+                
+        if 'stage_target' in kwargs:
+            if kwargs['stage_target'] not in valid_stages:
+                raise ValueError(f"Invalid stage_target: {kwargs['stage_target']}")
+        
+        super().__init__(**kwargs)
+
 class Reminder(db.Model):
     __tablename__ = 'Reminders'
     reminder_id = db.Column(db.Integer, primary_key=True)
@@ -101,22 +121,3 @@ class EmailLog(db.Model):
     mailchimp_id = db.Column(db.String(255), nullable=True)  # To store Mailchimp message ID for reference
     
     user = db.relationship('User', backref='email_logs', lazy=True)
-class Permission(db.Model):
-    __tablename__ = 'Permissions'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)  # e.g. 'edit_email', 'manage_users'
-
-class UserPermission(db.Model):
-    __tablename__ = 'UserPermissions'
-    user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), primary_key=True)
-    permission_id = db.Column(db.Integer, db.ForeignKey('Permissions.id'), primary_key=True)
-
-    user = db.relationship('User', backref=db.backref('user_permissions', lazy='dynamic'))
-    permission = db.relationship('Permission', backref=db.backref('user_permissions', lazy='dynamic'))
-
-def create_default_permissions():
-    defaults = ["default", "view_admin_dashboard", "edit_email", "view_users", "manage_users", "student_stats"]
-    for name in defaults:
-        if not Permission.query.filter_by(name=name).first():
-            db.session.add(Permission(name=name))
-    db.session.commit()

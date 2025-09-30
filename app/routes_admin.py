@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, session
 from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm
 from .models import Right, Message, User, Reminder, SupportPost, SupportContact
 from .check import login_and_rights_required
@@ -89,27 +89,36 @@ def delete_account():
 def admin_create_message():
     form = AdminMessageForm()
     if form.validate_on_submit():
-        sched = None
-        if form.scheduled_at.data:
-            try:
-                sched = datetime.fromisoformat(form.scheduled_at.data)
-            except Exception:
-                sched = None
-        m = Message(
-            title = form.title.data,
-            content = form.message_content.data,
-            degree_code = "ALL" , # Placeholder, adjust as needed
-            week_released = 1,  # Placeholder, adjust as needed
-            scheduled_at = sched,
-            degree_type_target = form.degree_type_target.data or None,
-            location_target = form.location_target.data or None,
-            stage_target = form.stage_target.data or None
-        )
-        db.session.add(m)
-        db.session.commit()
-        flash("Message created.", "success")
+        try:
+            sched = None
+            if form.scheduled_at.data:
+                try:
+                    sched = datetime.fromisoformat(form.scheduled_at.data)
+                except ValueError as e:
+                    current_app.logger.warning(f"Invalid datetime format: {form.scheduled_at.data}")
+                    sched = None
+            
+            m = Message(
+                title = form.title.data,
+                content = form.message_content.data,
+                degree_code = "ALL" , # Placeholder, adjust as needed
+                week_released = 1,  # Placeholder, adjust as needed
+                scheduled_at = sched,
+                degree_type_target = form.degree_type_target.data or None,
+                location_target = form.location_target.data or None,
+                stage_target = form.stage_target.data or None
+            )
+            db.session.add(m)
+            db.session.commit()
+            flash("Message created successfully.", "success")
+            current_app.logger.info(f"Message created: {m.title} by user {session.get('uid')}")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error creating message. Please try again.", "danger")
+            current_app.logger.error(f"Error creating message: {e}")
     else:
         flash("Invalid message data.", "danger")
+        current_app.logger.warning(f"Invalid form data for message creation: {form.errors}")
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/reminder/create")

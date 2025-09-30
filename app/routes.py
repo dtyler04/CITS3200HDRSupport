@@ -177,6 +177,14 @@ def tinymce_editor():
 @login_required  
 def save_tinymce_content():
     """Handle TinyMCE form submission"""
+    # Validate CSRF token
+    from flask_wtf.csrf import validate_csrf
+    try:
+        validate_csrf(request.form.get('csrf_token'))
+    except Exception:
+        flash("CSRF token validation failed. Please try again.", "error")
+        return redirect(url_for('main.tinymce_editor'))
+    
     content = request.form.get('content', '')
     title = request.form.get('title', 'Untitled')
     degree_code = request.form.get('degree_code', 'GENERAL')
@@ -222,6 +230,6 @@ def save_tinymce_content():
     schedule_str = f" | Scheduled: {scheduled_datetime}" if scheduled_datetime else ""
     
     flash(f"Content saved! Title: {title} | Targeting: {targeting_str}{schedule_str} | Content length: {len(content)} characters", "success")
-    print(f"TinyMCE Message Data: {message_data}")
+    current_app.logger.info(f"TinyMCE Message Data: {message_data}")
     
-    return redirect(url_for('main.tinymce_editor'))
+    return redirect(url_for('admin.admin_dashboard'))
