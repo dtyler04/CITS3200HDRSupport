@@ -64,44 +64,6 @@ def select_message():
         return redirect(url_for("admin.admin_dashboard"))
     return render_template("select_message.html", messages=messages)
 
-@admin_bp.post("/email-editor")
-@login_and_rights_required(1)
-def save_email_message():
-    message_id = request.form.get("message_id")
-    content = request.form.get("message_content")
-    if message_id:
-        # Update existing message
-        message = Message.query.get(message_id)
-        if message:
-            message.content = content
-            db.session.commit()
-            flash("Message updated!", "success")
-        else:
-            flash("Message not found.", "danger")
-    else:
-        # Create new message
-        degreeCode = request.form.get("degreeCode")
-        week_released = request.form.get("week_released")
-        if degreeCode and week_released:
-            new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
-            db.session.add(new_message)
-            db.session.commit()
-            flash("New message created!", "success")
-        else:
-            flash("Degree code and week are required for new messages.", "danger")
-    return redirect(url_for("admin.admin_dashboard"))
-
-@admin_bp.get("/email-editor")
-@login_and_rights_required(1) # Put permission number according(.e.g admin)
-def email_editor():
-    message_id = request.args.get("message_id")
-    message_content = ""
-    if message_id:
-        message = Message.query.get(message_id)
-        if message:
-            message_content = message.content
-    return render_template("email_editor.html", message_content=message_content)
-
 @admin_bp.post("/delete_account")
 @login_and_rights_required(1)  
 def delete_account():

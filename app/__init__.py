@@ -30,6 +30,9 @@ def create_app():
     with app.app_context(): 
         from . import models
         db.create_all()
+        
+        # Initialize default permissions if they don't exist
+        init_default_permissions()
 
     from .routes_admin import admin_bp
     from .routes_OTP import otp_bp
@@ -46,5 +49,23 @@ def create_app():
     from . import routes
 
     return app
+
+def init_default_permissions():
+    """Initialize default permission types in the Admin table"""
+    from .models import Admin
+    
+    # Check if permissions already exist
+    if Admin.query.first() is None:
+        # Create default permission types
+        student_permission = Admin(permission_number=0, permissionName='student')
+        admin_permission = Admin(permission_number=1, permissionName='admin')
+        
+        db.session.add(student_permission)
+        db.session.add(admin_permission)
+        db.session.commit()
+        
+        print("✅ Default permissions initialized:")
+        print("   - Permission 0: student")
+        print("   - Permission 1: admin")
 
 
