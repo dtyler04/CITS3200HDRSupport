@@ -16,7 +16,7 @@ def verify_page():
     email = session.get("pending_verify_email")
     if not email:
         flash("No email pending verification. Please sign up first.", "warning")
-        return redirect(url_for("main.signup_page"))
+        return redirect(url_for("main.signup"))
     return render_template("verify_email.html",
                            form=VerifyOTPForm(),
                            resend_form=ResendOTPForm())
@@ -33,7 +33,7 @@ def verify_submit():
     email = session.get("pending_verify_email") or resend_form.email.data
     if not email:
         flash("No email pending verification. Please sign up again.", "warning")
-        return redirect(url_for("main.signup_page"))
+        return redirect(url_for("main.signup"))
 
     if not _svc().verify_otp(email, form.code.data):
         flash("Invalid or expired code.", "danger")
@@ -42,7 +42,7 @@ def verify_submit():
     pending = session.pop("pending_signup", None)
     if not pending or pending.get("email") != email:
         flash("Session expired or invalid. Please sign up again.", "danger")
-        return redirect(url_for("main.signup_page"))
+        return redirect(url_for("main.signup"))
 
     user = User(
         user_id=pending["user_id"],
@@ -95,7 +95,7 @@ def resend_submit():
     email = session.get("pending_verify_email")
     if not email:
         flash("No email to resend to.", "warning")
-        return redirect(url_for("main.signup_page"))
+        return redirect(url_for("main.signup"))
 
     if not _svc().send_otp(email):
         flash("Could not resend verification code. Please try again.", "danger")
