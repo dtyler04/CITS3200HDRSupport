@@ -57,8 +57,8 @@ def init_default_permissions():
     # Check if permissions already exist
     if Admin.query.first() is None:
         # Create default permission types
-        student_permission = Admin(permission_number=0, permissionName='student')
-        admin_permission = Admin(permission_number=1, permissionName='admin')
+        student_permission = Admin(permission_number=0, permission_name='student')
+        admin_permission = Admin(permission_number=1, permission_name='admin')
         
         db.session.add(student_permission)
         db.session.add(admin_permission)

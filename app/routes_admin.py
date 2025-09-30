@@ -98,7 +98,7 @@ def admin_create_message():
         m = Message(
             title = form.title.data,
             content = form.message_content.data,
-            degreeCode = "ALL" , # Placeholder, adjust as needed
+            degree_code = "ALL" , # Placeholder, adjust as needed
             week_released = 1,  # Placeholder, adjust as needed
             scheduled_at = sched,
             degree_type_target = form.degree_type_target.data or None,

@@ -17,9 +17,6 @@ class User(db.Model):
     rights = db.relationship('Right', backref='user', lazy='select', cascade="all, delete-orphan", passive_deletes=False)
     updates = db.relationship('EnrollmentUpdate', backref='user', lazy='select', cascade="all, delete-orphan", passive_deletes=False)
 
-    rights = db.relationship('Right', backref='user', lazy=True)
-    updates = db.relationship('EnrollmentUpdate', backref='user', lazy=True)
-
     def is_verified(self):
         return self.email_verified_at is not None
 class Right(db.Model):
@@ -30,21 +27,21 @@ class Right(db.Model):
 class Admin(db.Model):
     __tablename__ = 'Admin'
     permission_number = db.Column(db.Integer, primary_key=True)
-    permissionName = db.Column(db.String(50), nullable=False)
+    permission_name = db.Column(db.String(50), nullable=False)
 
     rights = db.relationship('Right', backref='admin', lazy=True)
 class EnrollmentUpdate(db.Model):
     __tablename__ = 'EnrollmentUpdates'
     update_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('Users.user_id'), nullable=False)
-    degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
+    degree_code = db.Column(db.String(8), db.ForeignKey('Enrollments.degree_code'), nullable=False)
     initialisation = db.Column(db.Boolean, nullable=False)
     study_mode = db.Column(db.String, nullable=False)
     current_week = db.Column(db.Integer, nullable=False)
     location = db.Column(db.String, nullable=False)
 class Enrollment(db.Model):
     __tablename__ = 'Enrollments'
-    degreeCode = db.Column(db.String(8), primary_key=True)
+    degree_code = db.Column(db.String(8), primary_key=True)
     degree_type = db.Column(db.String, nullable=False)
 
     updates = db.relationship('EnrollmentUpdate', backref='enrollment', lazy=True)
@@ -53,7 +50,7 @@ class Message(db.Model):
     __tablename__ = 'Messages'
     message_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)               # new
-    degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
+    degree_code = db.Column(db.String(8), db.ForeignKey('Enrollments.degree_code'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     week_released = db.Column(db.Integer, nullable=False)
     scheduled_at = db.Column(db.DateTime, nullable=True)            # new: schedule time
@@ -88,7 +85,7 @@ class SupportContact(db.Model):
 class Assessments(db.Model):
     __tablename__ = 'Assessments'
     assessment_id = db.Column(db.Integer, primary_key=True)
-    degreeCode = db.Column(db.String(8), db.ForeignKey('Enrollments.degreeCode'), nullable=False)
+    degree_code = db.Column(db.String(8), db.ForeignKey('Enrollments.degree_code'), nullable=False)
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=False)
     due_week = db.Column(db.Integer, nullable=False)
