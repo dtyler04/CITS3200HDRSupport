@@ -182,8 +182,46 @@ def save_tinymce_content():
     degree_code = request.form.get('degree_code', 'GENERAL')
     week_released = request.form.get('week_released', 1)
     
+    # Handle new targeting fields
+    scheduled_at = request.form.get('scheduled_at', None)
+    degree_type_target = request.form.get('degree_type_target', None)
+    location_target = request.form.get('location_target', None)
+    stage_target = request.form.get('stage_target', None)
+    
+    # Convert scheduled_at to datetime if provided
+    scheduled_datetime = None
+    if scheduled_at:
+        try:
+            from datetime import datetime
+            scheduled_datetime = datetime.fromisoformat(scheduled_at)
+        except Exception:
+            flash("Invalid datetime format for scheduling.", "warning")
+    
+    # Create message object (you may want to save to database here)
+    message_data = {
+        'title': title,
+        'content': content,
+        'degree_code': degree_code,
+        'week_released': int(week_released) if week_released else 1,
+        'scheduled_at': scheduled_datetime,
+        'degree_type_target': degree_type_target if degree_type_target else None,
+        'location_target': location_target if location_target else None,
+        'stage_target': stage_target if stage_target else None
+    }
+    
     # Process the content and redirect back
-    flash(f"Content saved! Title: {title}, Content length: {len(content)} characters", "success")
-    print(f"TinyMCE Content: {content[:200]}..." if len(content) > 200 else content)
+    targeting_info = []
+    if degree_type_target:
+        targeting_info.append(f"Degree: {degree_type_target}")
+    if location_target:
+        targeting_info.append(f"Location: {location_target}")
+    if stage_target:
+        targeting_info.append(f"Stage: {stage_target}")
+    
+    targeting_str = " | ".join(targeting_info) if targeting_info else "All students"
+    schedule_str = f" | Scheduled: {scheduled_datetime}" if scheduled_datetime else ""
+    
+    flash(f"Content saved! Title: {title} | Targeting: {targeting_str}{schedule_str} | Content length: {len(content)} characters", "success")
+    print(f"TinyMCE Message Data: {message_data}")
     
     return redirect(url_for('main.tinymce_editor'))

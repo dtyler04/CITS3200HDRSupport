@@ -21,11 +21,16 @@
     .editor-input-group {
         margin-bottom: 15px;
     }
-    .editor-input-group input {
+    .editor-input-group input,
+    .editor-input-group select {
         padding: 8px;
         margin-right: 10px;
         border: 1px solid #ddd;
         border-radius: 4px;
+        min-width: 120px;
+    }
+    .editor-input-group input[type="datetime-local"] {
+        min-width: 200px;
     }
     
     /* Hide TinyMCE promotional content */
@@ -75,6 +80,27 @@
             <input type="text" name="title" placeholder="Title" required="True">
             <input type="text" name="degree_code" placeholder="Degree Code" required="True">
             <input type="number" name="week_released" placeholder="Week" required="True">
+        </div>
+
+        <div class="editor-input-group">
+            <input type="datetime-local" name="scheduled_at" placeholder="Schedule Time (optional)">
+            <select name="degree_type_target" class="form-select" style="display: inline-block; width: auto; margin-right: 10px;">
+                <option value="">All Degree Types</option>
+                <option value="masters">Masters</option>
+                <option value="phd">PhD</option>
+            </select>
+            <select name="location_target" class="form-select" style="display: inline-block; width: auto; margin-right: 10px;">
+                <option value="">All Locations</option>
+                <option value="online">Online</option>
+                <option value="on-campus">On-campus</option>
+            </select>
+            <select name="stage_target" class="form-select" style="display: inline-block; width: auto;">
+                <option value="">All Stages</option>
+                <option value="commencing">Commencing</option>
+                <option value="mid-candidature">Mid-candidature</option>
+                <option value="late-candidature">Late-candidature</option>
+                <option value="thesis-submission">Thesis Submission</option>
+            </select>
         </div>
 
         <textarea id="tinyMCEEditor" name="content">
