@@ -114,6 +114,9 @@ function initTinyMCE() {
             suffix: '.min',
             height: 500,
             menubar: true,
+            promotion: false,
+            branding: false,
+            statusbar: false,
             plugins: [
                 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -215,24 +218,12 @@ function initTinyMCE() {
     }
 }
 
-// Helper functions for TinyMCE editor
-function getContent() {
-    if (!tinyMCEInitialized || !tinymce.get('tinyMCEEditor')) {
-        alert('TinyMCE not initialized yet. Please click on the TinyMCE tab first.');
-        return;
-    }
-    const content = tinymce.get('tinyMCEEditor').getContent();
-    document.getElementById('html-output').textContent = content;
-    document.getElementById('content-output').style.display = 'block';
-    console.log('TinyMCE Content:', content);
-}
-
 function clearContent() {
     if (!tinyMCEInitialized || !tinymce.get('tinyMCEEditor')) {
         alert('TinyMCE not initialized yet.');
         return;
     }
-    if (confirm('Clear all content?')) {
+    if (confirm('Clear all content? There is no turning back now!')) {
         tinymce.get('tinyMCEEditor').setContent('');
     }
 }

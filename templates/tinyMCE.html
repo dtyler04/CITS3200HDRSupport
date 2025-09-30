@@ -27,6 +27,34 @@
         border: 1px solid #ddd;
         border-radius: 4px;
     }
+    
+    /* Hide TinyMCE promotional content */
+    .tox-promotion,
+    .tox-promotion-link,
+    .tox-statusbar__branding,
+    .tox-statusbar__right-container .tox-statusbar__branding,
+    .tox-statusbar a[href*="tiny.cloud"],
+    .tox-statusbar a[href*="tinymce.com"],
+    .tox-promotion-link,
+    button[aria-label*="Get all features"],
+    button[title*="Get all features"],
+    .tox-statusbar__text-container a,
+    .tox-statusbar__help-text {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Hide any promotional buttons or links in the toolbar */
+    .tox-toolbar button[aria-label*="upgrade"],
+    .tox-toolbar button[title*="upgrade"],
+    .tox-toolbar .tox-promotion,
+    .tox-menubar .tox-promotion {
+        display: none !important;
+    }
 </style>
 
 <div class="tinymce-container">
@@ -34,8 +62,9 @@
         <div class="form-controls">
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">Save Content</button>
+            </div>
+            <div class="btn-group">
                 <button type="button" class="btn btn-secondary" onclick="loadSampleContent()">Load Sample</button>
-                <button type="button" class="btn btn-info" onclick="getContent()">Get HTML</button>
                 <button type="button" class="btn btn-warning" onclick="clearContent()">Clear</button>
                 <input type="file" id="wordUpload" accept=".docx" style="display: none;" onchange="handleWordUpload(this)">
                 <button type="button" class="btn btn-success" onclick="document.getElementById('wordUpload').click()">📄 Import Word Doc</button>
@@ -43,9 +72,9 @@
         </div>
 
         <div class="editor-input-group">
-            <input type="text" name="title" placeholder="Email Title" value="TinyMCE Email">
-            <input type="text" name="degree_code" placeholder="Degree Code" value="HDR001">
-            <input type="number" name="week_released" placeholder="Week" value="1">
+            <input type="text" name="title" placeholder="Title" required="True">
+            <input type="text" name="degree_code" placeholder="Degree Code" required="True">
+            <input type="number" name="week_released" placeholder="Week" required="True">
         </div>
 
         <textarea id="tinyMCEEditor" name="content">
