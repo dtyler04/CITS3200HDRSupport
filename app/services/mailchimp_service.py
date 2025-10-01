@@ -10,7 +10,7 @@ class MailchimpService:
         self.list_id = os.getenv("MAILCHIMP_LIST_ID")
         self.client.set_config({
             "api_key": os.getenv("MAILCHIMP_API_KEY"),
-            "server": os.getenv("MAILCHIMP_SERVER"),
+            "server": os.getenv("MAILCHIMP_SERVER_PREFIX"),
         })
 
     # Hash mail adress as required by Maichimp API
@@ -31,7 +31,9 @@ class MailchimpService:
         try:
             return self.client.lists.set_list_member(self.list_id, sub_hash, body)
         except ApiClientError as e:
-            print("Mailchimp API error:", e.text)
+            # Use logging instead of print
+            import logging
+            logging.error(f"Mailchimp API error: {e.text}")
             raise
 
     def get_member(self, email):
@@ -56,5 +58,11 @@ class MailchimpService:
         sub_hash = self._subscriber_hash(email)
         try:
             return self.client.lists.delete_list_member(self.list_id, sub_hash)
+        except ApiClientError as e:
+            import logging
+            logging.error(f"Mailchimp delete member error: {e.text}")
+            return False
         except Exception as e:
+            import logging
+            logging.error(f"Unexpected error deleting member: {e}")
             return False
