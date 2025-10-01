@@ -63,7 +63,7 @@
 </style>
 
 <div class="tinymce-container">
-    <form id="tinyMCEForm" method="POST" action="{{ url_for('main.save_tinymce_content') }}">
+    <form id="tinyMCEForm" method="POST" action="{{ url_for('admin.save_tinymce_content') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="form-controls">
             <div class="btn-group">
