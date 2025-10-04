@@ -1,12 +1,13 @@
 {% import "admin/_forms.html" as ui %}
 
-<!-- count messages and reminders-->
-<div class="d-flex align-items-center justify-content-between mb-3">
-  <h4 class="mb-0">Existing messages & reminders</h4>
-  <div class="small text-muted">{{ messages|length }} messages . {{ reminders|length }} reminders</div>
-</div>
+<div id="history">
+  <!-- count messages and reminders-->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Existing messages & reminders</h4>
+    <div class="small text-muted">{{ messages|length }} messages . {{ reminders|length }} reminders</div>
+  </div>
 
-<div class="row g-3">
+  <div class="row g-3">
   <div class="col-lg-6">
     <div class="card h-100 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center">
@@ -68,6 +69,7 @@
       </ul>
     </div>
   </div>
-</div>
+  </div>
 
-<hr class="my-4">
+  <hr class="my-4">
+</div>
