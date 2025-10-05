@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, session
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, session, jsonify
 from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm
 from .models import Right, Message, User, Reminder, SupportPost, SupportContact
 from .check import login_and_rights_required, login_required
@@ -145,6 +145,69 @@ def admin_create_reminder():
     else:
         flash("Invalid reminder data.", "danger")
     return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/bulk/messages")
+@login_and_rights_required(1)
+def bulk_create_messages():
+    """Accepts JSON { messages: [ {title, content, degree_code, week_released, scheduled_at?, degree_type_target?, location_target?, stage_target?} ] }
+    Creates Message rows. Returns counts of saved and skipped."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        items = payload.get('messages', [])
+        if not isinstance(items, list) or not items:
+            return jsonify({"error": "No messages provided"}), 400
+
+        saved = 0
+        skipped = 0
+        errors = []
+
+        for idx, it in enumerate(items):
+            try:
+                title = (it.get('title') or '').strip()
+                content = (it.get('content') or '').strip()
+                degree_code = (it.get('degree_code') or 'ALL').strip() or 'ALL'
+                week = it.get('week_released') or 1
+                scheduled_at = it.get('scheduled_at')
+
+                # Parse scheduled_at if provided as ISO string
+                sched_dt = None
+                if scheduled_at:
+                    try:
+                        sched_dt = datetime.fromisoformat(scheduled_at)
+                    except Exception:
+                        sched_dt = None
+
+                if not title or not content:
+                    skipped += 1
+                    errors.append({"index": idx, "reason": "Missing title or content"})
+                    continue
+
+                m = Message(
+                    title=title,
+                    content=content,
+                    degree_code=degree_code,
+                    week_released=int(week) if str(week).isdigit() else 1,
+                    scheduled_at=sched_dt,
+                    degree_type_target=it.get('degree_type_target') or None,
+                    location_target=it.get('location_target') or None,
+                    stage_target=it.get('stage_target') or None
+                )
+                db.session.add(m)
+                saved += 1
+            except Exception as e:
+                current_app.logger.exception("Bulk message item failed")
+                skipped += 1
+                errors.append({"index": idx, "reason": str(e)})
+
+        if saved:
+            db.session.commit()
+        else:
+            db.session.rollback()
+
+        return jsonify({"saved": saved, "skipped": skipped, "errors": errors}), 200
+    except Exception as e:
+        current_app.logger.exception("Bulk message upload failed")
+        return jsonify({"error": str(e)}), 500
 
 @admin_bp.post("/support_post/create")
 @login_and_rights_required(1)

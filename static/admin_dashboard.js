@@ -91,6 +91,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Bulk DOCX handlers
+    const bulkInput = document.getElementById('bulkDocxInput');
+    const bulkBtn = document.getElementById('bulkUploadBtn');
+    const bulkClearBtn = document.getElementById('bulkClearBtn');
+    if (bulkInput && bulkBtn && bulkClearBtn) {
+        setupBulkDocxHandlers(bulkInput, bulkBtn, bulkClearBtn);
+    }
 });
 
 function initTinyMCE() {
@@ -410,4 +418,154 @@ function handleWordUpload(input) {
     
     fileReader.readAsArrayBuffer(file);
     input.value = '';
+}
+
+// -------------------- Bulk DOCX Upload --------------------
+let parsedBulkMessages = [];
+
+function setupBulkDocxHandlers(fileInput, uploadBtn, clearBtn) {
+    const preview = document.getElementById('bulkPreview');
+    parsedBulkMessages = [];
+    uploadBtn.disabled = true;
+
+    clearBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        parsedBulkMessages = [];
+        if (preview) preview.innerHTML = '';
+        uploadBtn.disabled = true;
+    });
+
+    fileInput.addEventListener('change', async () => {
+        const files = Array.from(fileInput.files || []);
+        if (!files.length) return;
+        if (typeof mammoth === 'undefined') {
+            alert('Mammoth.js not loaded');
+            return;
+        }
+
+        parsedBulkMessages = [];
+        if (preview) preview.innerHTML = '';
+
+        // Parse each file sequentially to control memory usage
+        for (const file of files) {
+            const summary = await parseSingleDocx(file).catch(err => ({ error: String(err) }));
+            parsedBulkMessages.push(summary);
+        }
+
+        // Render preview
+        if (preview) {
+            preview.innerHTML = parsedBulkMessages.map((m, idx) => {
+                if (m && !m.error) {
+                    const targets = [m.degree_type_target || 'all', m.location_target || 'all', m.stage_target || 'all'].join(', ');
+                    return `
+                        <div class="border rounded p-2 mb-2">
+                          <div class="fw-bold">${escapeHtml(m.title || '(No title)')}</div>
+                          <div class="small text-muted">week: ${m.week_released ?? 'unknown'} — targets: ${targets}</div>
+                          <div class="small">from: ${escapeHtml(m.file_name || '')}</div>
+                        </div>`;
+                } else {
+                    return `
+                        <div class="border rounded p-2 mb-2 bg-light">
+                          <div class="text-danger">Failed to parse ${escapeHtml((m && m.file_name) || 'file')}</div>
+                          <div class="small">${escapeHtml((m && m.error) || 'Unknown error')}</div>
+                        </div>`;
+                }
+            }).join('');
+        }
+
+        uploadBtn.disabled = parsedBulkMessages.every(m => m.error);
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+        const valid = parsedBulkMessages.filter(m => m && !m.error);
+        if (!valid.length) {
+            alert('No valid messages to upload.');
+            return;
+        }
+
+        try {
+            const resp = await fetch('/admin/bulk/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ messages: valid })
+            });
+            if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(text || `HTTP ${resp.status}`);
+            }
+            const data = await resp.json();
+            alert(`Uploaded ${data.saved} messages. ${data.skipped} skipped.`);
+            window.location.reload();
+        } catch (err) {
+            console.error('Bulk upload failed', err);
+            alert(`Bulk upload failed: ${err}`);
+        }
+    });
+}
+
+async function parseSingleDocx(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer });
+    const html = (result.value || '').trim();
+
+    const text = stripHtml(html).trim();
+    const title = inferTitle(file.name, html, text);
+    const week = inferWeekNumber(file.name, text);
+    const degreeType = inferDegreeType(file.name, text);
+
+    return {
+        file_name: file.name,
+        title: title || file.name.replace(/\.docx$/i, ''),
+        content: html,
+        degree_code: 'ALL',
+        week_released: week || 1,
+        scheduled_at: null,
+        degree_type_target: degreeType,
+        location_target: null,
+        stage_target: null
+    };
+}
+
+function stripHtml(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return (div.textContent || div.innerText || '').replace(/\s+/g, ' ');
+}
+
+function inferTitle(fileName, html, text) {
+    // Prefer first h1/h2
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const h = tmp.querySelector('h1, h2, h3');
+    if (h && h.textContent) return h.textContent.trim();
+
+    // Fallback: filename before extension and week markers
+    let base = fileName.replace(/\.docx$/i, '').replace(/_/g, ' ').trim();
+    base = base.replace(/\bweek\s*\d+\b/ig, '').replace(/\bwk\s*\d+\b/ig, '').trim();
+    return base || null;
+}
+
+function inferWeekNumber(fileName, text) {
+    // Try filename: week12 or wk12
+    let m = fileName.match(/(?:week|wk)\s*(\d{1,2})/i);
+    if (m) return parseInt(m[1], 10);
+    // Try text: Week 5, Wk 3
+    m = text.match(/\b(?:week|wk)\s*(\d{1,2})\b/i);
+    if (m) return parseInt(m[1], 10);
+    return null;
+}
+
+function inferDegreeType(fileName, text) {
+    const s = `${fileName} ${text}`.toLowerCase();
+    if (/(masters|master's|coursework)/i.test(s)) return 'masters';
+    if (/(phd|doctoral|doctorate|research)/i.test(s)) return 'phd';
+    return null;
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"]|'/g, function(c) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[c];
+    });
 }

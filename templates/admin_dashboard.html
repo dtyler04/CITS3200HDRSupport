@@ -70,6 +70,20 @@
           </form>
         </div>
 
+        <!-- Bulk Upload Messages (DOCX) -->
+        <div class="card p-3 mb-3">
+          <h5>Bulk Upload Messages (Word .docx)</h5>
+          <p class="text-muted small mb-2">Select one or more .docx files. We'll try to infer title, week, and degree type (masters/phd) from the filename or document headings.</p>
+          <div class="mb-2">
+            <input id="bulkDocxInput" class="form-control" type="file" accept=".docx" multiple>
+          </div>
+          <div id="bulkPreview" class="mb-2"></div>
+          <div class="d-flex gap-2">
+            <button id="bulkUploadBtn" class="btn btn-success" type="button" disabled>Upload Parsed Messages</button>
+            <button id="bulkClearBtn" class="btn btn-outline-secondary" type="button">Clear</button>
+          </div>
+        </div>
+
         <!-- Create Reminder -->
         <div class="card p-3 mb-3">
           <h5>Create Reminder</h5>
