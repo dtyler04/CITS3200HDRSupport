@@ -1,7 +1,7 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response, session
 from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm
 from .models import Right, Message, User, Reminder, SupportPost, SupportContact
-from .check import login_and_rights_required
+from .check import login_and_rights_required, login_required
 from . import db
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -65,44 +65,6 @@ def select_message():
         return redirect(url_for("admin.admin_dashboard"))
     return render_template("select_message.html", messages=messages)
 
-@admin_bp.post("/email-editor")
-@login_and_rights_required(1)
-def save_email_message():
-    message_id = request.form.get("message_id")
-    content = request.form.get("message_content")
-    if message_id:
-        # Update existing message
-        message = Message.query.get(message_id)
-        if message:
-            message.content = content
-            db.session.commit()
-            flash("Message updated!", "success")
-        else:
-            flash("Message not found.", "danger")
-    else:
-        # Create new message
-        degreeCode = request.form.get("degreeCode")
-        week_released = request.form.get("week_released")
-        if degreeCode and week_released:
-            new_message = Message(degreeCode=degreeCode, content=content, week_released=week_released)
-            db.session.add(new_message)
-            db.session.commit()
-            flash("New message created!", "success")
-        else:
-            flash("Degree code and week are required for new messages.", "danger")
-    return redirect(url_for("admin.admin_dashboard"))
-
-@admin_bp.get("/email-editor")
-@login_and_rights_required(1) # Put permission number according(.e.g admin)
-def email_editor():
-    message_id = request.args.get("message_id")
-    message_content = ""
-    if message_id:
-        message = Message.query.get(message_id)
-        if message:
-            message_content = message.content
-    return render_template("email_editor.html", message_content=message_content)
-
 @admin_bp.post("/delete_account")
 @login_and_rights_required(1)  
 def delete_account():
@@ -129,28 +91,41 @@ def admin_create_message():
     form = AdminMessageForm()
     created_ok = False
     if form.validate_on_submit():
-        sched = None
-        if form.scheduled_at.data:
-            try:
-                sched = datetime.fromisoformat(form.scheduled_at.data)
-            except Exception:
-                sched = None
-        m = Message(
-            title = form.title.data,
-            content = form.message_content.data,
-            degreeCode = "ALL" , # Placeholder, adjust as needed
-            week_released = 1,  # Placeholder, adjust as needed
-            scheduled_at = sched,
-            degree_type_target = form.degree_type_target.data or None,
-            location_target = form.location_target.data or None,
-            stage_target = form.stage_target.data or None
-        )
-        db.session.add(m)
-        db.session.commit()
-        flash("Message created.", "success")
-        created_ok = True
+        try:
+            sched = None
+            if form.scheduled_at.data:
+                try:
+                    sched = datetime.fromisoformat(form.scheduled_at.data)
+                except ValueError:
+                    current_app.logger.warning(f"Invalid datetime format: {form.scheduled_at.data}")
+                    sched = None
+
+            m = Message(
+                title=form.title.data,
+                content=form.message_content.data,
+                degree_code="ALL",  # Placeholder, adjust as needed
+                week_released=1,  # Placeholder, adjust as needed
+                scheduled_at=sched,
+                degree_type_target=form.degree_type_target.data or None,
+                location_target=form.location_target.data or None,
+                stage_target=form.stage_target.data or None
+            )
+
+            db.session.add(m)
+            db.session.commit()
+
+            flash("Message created successfully.", "success")
+            current_app.logger.info(f"Message created: {m.title} by user {session.get('uid')}")
+            created_ok = True
+
+        except Exception as e:
+            db.session.rollback()
+            flash("Error creating message. Please try again.", "danger")
+            current_app.logger.error(f"Error creating message: {e}")
     else:
         flash("Invalid message data.", "danger")
+        current_app.logger.warning(f"Invalid form data for message creation: {form.errors}")
+
     # If HTMX request, return the updated history partial
     if request.headers.get("HX-Request") == "true":
         messages = Message.query.order_by(Message.scheduled_at.desc().nullslast()).all()
@@ -161,6 +136,7 @@ def admin_create_message():
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
         return resp
+
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/reminder/create")
@@ -233,7 +209,7 @@ def admin_create_post():
         posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
         contacts = SupportContact.query.order_by(SupportContact.service_type).all()
         html = render_template("admin/_support_content.html", posts=posts, contacts=contacts, csrf_form=CSRFOnlyForm()) + \
-               render_template("admin/_flashes.html")
+                render_template("admin/_flashes.html")
         resp = make_response(html)
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
@@ -321,3 +297,70 @@ def admin_delete_contact(contact_id):
 @login_and_rights_required(1)
 def uploaded_file(filename):
     return send_from_directory(current_app.config.get('UPLOAD_FOLDER'), filename)
+
+@admin_bp.get("/tinymce-editor")
+@login_and_rights_required(1)
+def tinymce_editor():
+    """TinyMCE rich text editor page"""
+    return render_template("tinyMCE.html")
+
+@admin_bp.post("/tinymce-editor")
+@login_and_rights_required(1)
+def save_tinymce_content():
+    """Handle TinyMCE form submission"""
+    # Validate CSRF token
+    from flask_wtf.csrf import validate_csrf
+    try:
+        validate_csrf(request.form.get('csrf_token'))
+    except Exception:
+        flash("CSRF token validation failed. Please try again.", "error")
+        return redirect(url_for('main.admin_dashboard'))
+    
+    content = request.form.get('content', '')
+    title = request.form.get('title', 'Untitled')
+    degree_code = request.form.get('degree_code', 'GENERAL')
+    week_released = request.form.get('week_released', 1)
+    
+    # Handle new targeting fields
+    scheduled_at = request.form.get('scheduled_at', None)
+    degree_type_target = request.form.get('degree_type_target', None)
+    location_target = request.form.get('location_target', None)
+    stage_target = request.form.get('stage_target', None)
+    
+    # Convert scheduled_at to datetime if provided
+    scheduled_datetime = None
+    if scheduled_at:
+        try:
+            from datetime import datetime
+            scheduled_datetime = datetime.fromisoformat(scheduled_at)
+        except Exception:
+            flash("Invalid datetime format for scheduling.", "warning")
+    
+    # Create message object (you may want to save to database here)
+    message_data = {
+        'title': title,
+        'content': content,
+        'degree_code': degree_code,
+        'week_released': int(week_released) if week_released else 1,
+        'scheduled_at': scheduled_datetime,
+        'degree_type_target': degree_type_target if degree_type_target else None,
+        'location_target': location_target if location_target else None,
+        'stage_target': stage_target if stage_target else None
+    }
+    
+    # Process the content and redirect back
+    targeting_info = []
+    if degree_type_target:
+        targeting_info.append(f"Degree: {degree_type_target}")
+    if location_target:
+        targeting_info.append(f"Location: {location_target}")
+    if stage_target:
+        targeting_info.append(f"Stage: {stage_target}")
+    
+    targeting_str = " | ".join(targeting_info) if targeting_info else "All students"
+    schedule_str = f" | Scheduled: {scheduled_datetime}" if scheduled_datetime else ""
+    
+    flash(f"Content saved! Title: {title} | Targeting: {targeting_str}{schedule_str} | Content length: {len(content)} characters", "success")
+    current_app.logger.info(f"TinyMCE Message Data: {message_data}")
+    
+    return redirect(url_for('admin.admin_dashboard'))

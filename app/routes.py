@@ -101,7 +101,7 @@ def student_dashboard():
     location = None
     stage = None
     if enrollment_update:
-        degree = Enrollment.query.filter_by(degreeCode=enrollment_update.degreeCode).first()
+        degree = Enrollment.query.filter_by(degree_code=enrollment_update.degree_code).first()
         degree_type = degree.degree_type if degree else None
         location = enrollment_update.location
         # You may want to store 'stage' in EnrollmentUpdate or elsewhere
@@ -152,17 +152,17 @@ def preview_email(user_id):
         if not enrollment_update:
             return None, None
 
-        degree_code = enrollment_update.degreeCode
+        degree_code = enrollment_update.degree_code
         current_week = enrollment_update.current_week
 
         messages = Message.query.filter(
-            Message.degreeCode == degree_code,
+            Message.degree_code == degree_code,
             Message.week_released > current_week,
             Message.week_released <= current_week + lookahead_weeks
         ).order_by(Message.week_released.asc()).all()
 
         assessments = Assessments.query.filter(
-            Assessments.degreeCode == degree_code,
+            Assessments.degree_code == degree_code,
             Assessments.due_week > current_week,
             Assessments.due_week <= current_week + lookahead_weeks
         ).order_by(Assessments.due_week.asc()).all()
@@ -170,3 +170,4 @@ def preview_email(user_id):
         return messages, assessments
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
+

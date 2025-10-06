@@ -1,0 +1,210 @@
+<style>
+.tinymce-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.form-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.btn-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.editor-input-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.editor-input-group input,
+.editor-input-group select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 120px;
+}
+.editor-input-group input[type="datetime-local"] {
+  min-width: 200px;
+}
+
+/* Hide TinyMCE promotional content */
+.tox-promotion,
+.tox-promotion-link,
+.tox-statusbar__branding,
+.tox-statusbar__right-container .tox-statusbar__branding,
+.tox-statusbar a[href*="tiny.cloud"],
+.tox-statusbar a[href*="tinymce.com"],
+.tox-statusbar__text-container a,
+.tox-statusbar__help-text {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Hide promotional buttons or links in the toolbar */
+.tox-toolbar button[aria-label*="upgrade"],
+.tox-toolbar .tox-promotion {
+  display: none !important;
+}
+</style>
+
+<div class="tinymce-container shadow-sm border-0 rounded">
+  <form
+    id="tinyMCEForm"
+    hx-post="{{ url_for('admin.save_tinymce_content') }}"
+    hx-target="#flash-container"
+    hx-swap="outerHTML"
+    hx-trigger="submit"
+    hx-on::after-request="if(event.detail.successful) this.reset();"
+  >
+    {{ csrf_form.hidden_tag() }}
+
+    <!-- Control Buttons -->
+    <div class="form-controls">
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save me-1"></i> Save Content
+        </button>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary" onclick="loadSampleContent()">Load Sample</button>
+        <button type="button" class="btn btn-warning" onclick="clearContent()">Clear</button>
+        <input type="file" id="wordUpload" accept=".docx" style="display: none;" onchange="handleWordUpload(this)">
+        <button type="button" class="btn btn-success" onclick="document.getElementById('wordUpload').click()">
+          <i class="bi bi-file-earmark-word me-1"></i> Import Word Doc
+        </button>
+      </div>
+    </div>
+
+    <!-- Meta Inputs -->
+    <div class="editor-input-group">
+      <input type="text" name="title" placeholder="Title" required>
+      <input type="text" name="degree_code" placeholder="Degree Code" required>
+      <input type="number" name="week_released" placeholder="Week" required>
+    </div>
+
+    <div class="editor-input-group">
+      <input type="datetime-local" name="scheduled_at" placeholder="Schedule Time (optional)">
+      <select name="degree_type_target" class="form-select">
+        <option value="">All Degree Types</option>
+        <option value="masters">Masters</option>
+        <option value="phd">PhD</option>
+      </select>
+      <select name="location_target" class="form-select">
+        <option value="">All Locations</option>
+        <option value="online">Online</option>
+        <option value="on-campus">On-campus</option>
+      </select>
+      <select name="stage_target" class="form-select">
+        <option value="">All Stages</option>
+        <option value="commencing">Commencing</option>
+        <option value="mid-candidature">Mid-candidature</option>
+        <option value="late-candidature">Late-candidature</option>
+        <option value="thesis-submission">Thesis Submission</option>
+      </select>
+    </div>
+
+    <!-- TinyMCE Editor -->
+    <textarea id="tinyMCEEditor" name="content">
+      <h2>Welcome to TinyMCE Editor</h2>
+      <p>This is the <strong>TinyMCE</strong> rich text editor interface.</p>
+
+      <h3>Available Features:</h3>
+      <ul>
+        <li><strong>Text Formatting:</strong> Bold, italic, underline, colors</li>
+        <li><strong>Lists:</strong> Bulleted and numbered lists</li>
+        <li><strong>Tables:</strong> Create and edit tables</li>
+        <li><strong>Images:</strong> Insert and resize images</li>
+        <li><strong>Links:</strong> Create hyperlinks</li>
+        <li><strong>Code:</strong> Insert code blocks</li>
+      </ul>
+
+      <h3>Sample Table</h3>
+      <table border="1" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>TinyMCE Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ease of Setup</td>
+            <td>✓ Complete</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><em>Try editing this content to explore TinyMCE functionality!</em></p>
+    </textarea>
+  </form>
+</div>
+
+<!-- Helper Output (hidden by default) -->
+<div id="content-output" class="container mt-3" style="display: none;">
+  <h4>Generated HTML:</h4>
+  <pre id="html-output" class="p-3 bg-light border rounded" style="overflow-x: auto;"></pre>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  tinymce.init({
+    selector: '#tinyMCEEditor',
+    height: 500,
+    menubar: true,
+    plugins: 'lists link image table code fullscreen preview',
+    toolbar: 'undo redo | styles | bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image | code preview fullscreen',
+    branding: false,
+    setup: (editor) => {
+      editor.on('change', () => {
+        editor.save(); // keep <textarea> synced for HTMX
+      });
+    }
+  });
+});
+
+// Utility Functions
+function loadSampleContent() {
+  const sample = `
+    <h2>HDR Student Portal Announcement</h2>
+    <p><strong>New event:</strong> HDR Writing Workshop this Friday at 10 AM.</p>
+    <p>Visit the <a href="#">HDR Hub</a> for registration.</p>`;
+  tinymce.get('tinyMCEEditor').setContent(sample);
+}
+
+function clearContent() {
+  tinymce.get('tinyMCEEditor').setContent('');
+}
+
+function handleWordUpload(input) {
+  if (input.files.length === 0) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    mammoth.convertToHtml({ arrayBuffer: e.target.result }).then(displayResult);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function displayResult(result) {
+  const editor = tinymce.get('tinyMCEEditor');
+  if (editor) {
+    editor.setContent(result.value);
+  }
+  document.getElementById('content-output').style.display = 'block';
+  document.getElementById('html-output').textContent = result.value;
+}
+</script>

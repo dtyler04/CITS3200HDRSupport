@@ -79,8 +79,8 @@ class EmailEditor(FlaskForm):
         render_kw={"id": "message_content"} 
     )
 
-    degreeCode = StringField(
-        "degreeCode",
+    degree_code = StringField(
+        "degree_code",
         validators=[DataRequired(), Length(max=64)],
         render_kw={"placeholder": "Degree Code", "required": True}
     )

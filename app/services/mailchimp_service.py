@@ -2,6 +2,7 @@ from mailchimp_marketing import Client
 from mailchimp_marketing.api_client import ApiClientError
 import hashlib, os
 from dotenv import load_dotenv
+import logging
 
 class MailchimpService:
     def __init__(self):
@@ -10,7 +11,7 @@ class MailchimpService:
         self.list_id = os.getenv("MAILCHIMP_LIST_ID")
         self.client.set_config({
             "api_key": os.getenv("MAILCHIMP_API_KEY"),
-            "server": os.getenv("MAILCHIMP_SERVER"),
+            "server": os.getenv("MAILCHIMP_SERVER_PREFIX"),
         })
 
     # Hash mail adress as required by Maichimp API
@@ -33,7 +34,9 @@ class MailchimpService:
         try:
             return self.client.lists.set_list_member(self.list_id, sub_hash, body)
         except ApiClientError as e:
-            print("Mailchimp API error:", e.text)
+            # Use logging instead of print
+            import logging
+            logging.error(f"Mailchimp API error: {e.text}")
             raise
 
     def get_member(self, email):
@@ -58,6 +61,10 @@ class MailchimpService:
         sub_hash = self._subscriber_hash(email)
         try:
             return self.client.lists.delete_list_member(self.list_id, sub_hash)
+        except ApiClientError as e:
+            import logging
+            logging.error(f"Mailchimp delete member error: {e.text}")
+            return False
         except Exception as e:
             return False
 
@@ -70,7 +77,10 @@ class MailchimpService:
         try:
             return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
         except ApiClientError as e:
-            print("Mailchimp API error:", e.text)
+            logging.error(f"Mailchimp API error (add_unit_tag) for {email} - {unit_code}: {e.text}")
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error adding unit tag for {email} - {unit_code}: {e}")
             raise
 
     # Use this when a student unenrolls/finishes from a unit
@@ -80,5 +90,8 @@ class MailchimpService:
         try:
             return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
         except ApiClientError as e:
-            print("Mailchimp API error (remove_unit_tag):", getattr(e, "text", str(e)))
+            logging.error(f"Mailchimp API error (remove_unit_tag) for {email} - {unit_code}: {getattr(e, 'text', str(e))}")
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error removing unit tag for {email} - {unit_code}: {e}")
             raise
