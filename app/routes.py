@@ -4,6 +4,7 @@ from .check import login_required
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, current_app, Blueprint
 from werkzeug.security import check_password_hash
+from datetime import datetime
 
 main_bp = Blueprint("main", __name__, url_prefix='')
 
@@ -100,12 +101,26 @@ def student_dashboard():
     degree_type = None
     location = None
     stage = None
+    start_date = None
+    progress_percentage = 0
+
     if enrollment_update:
         degree = Enrollment.query.filter_by(degreeCode=enrollment_update.degreeCode).first()
         degree_type = degree.degree_type if degree else None
         location = enrollment_update.location
-        # You may want to store 'stage' in EnrollmentUpdate or elsewhere
-        stage = None  # Set this if you have it
+        stage = None  # Update if stage is stored elsewhere
+
+        # Estimate start date from earliest EnrollmentUpdate
+        earliest_update = EnrollmentUpdate.query.filter_by(user_id=user.user_id).order_by(EnrollmentUpdate.update_id.asc()).first()
+        if earliest_update:
+            # Assume update_id is a timestamp (as per signup route)
+            start_date = datetime.fromtimestamp(earliest_update.update_id)
+            # Calculate progress based on degree type
+            current_date = datetime.utcnow()
+            duration_years = 2 if degree_type == 'masters' else 3
+            total_days = duration_years * 365
+            days_passed = (current_date - start_date).days
+            progress_percentage = min(100, max(0, (days_passed / total_days) * 100))
 
     # Filter reminders/messages for this user
     reminders = Reminder.query.filter(
@@ -122,10 +137,16 @@ def student_dashboard():
 
     wellbeing_posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
     contacts = SupportContact.query.order_by(SupportContact.service_type).all()
-    user_units = Unit.query.filter_by(user_id=session['uid']).all()
+    user_units = Unit.query.filter_by(user_id=user.user_id).all()
+
     return render_template(
         "student_dashboard.html",
         first_name=user.first_name,
+        user=user,
+        enrollment_update=enrollment_update,
+        degree_type=degree_type,
+        start_date=start_date,
+        progress_percentage=round(progress_percentage, 1),
         reminders=reminders,
         messages=messages,
         wellbeing_posts=wellbeing_posts,

@@ -6,7 +6,9 @@
         <span class="fw-semibold">Support posts</span>
         <span class="badge text-bg-secondary">{{ posts|length }}</span>
       </div>
-      <ul class="list-group list-group-flush">
+
+      <!-- HTMX target: support-posts-list (must match hx-target on your form and the fragment returned by the route) -->
+      <ul id="support-posts-list" class="list-group list-group-flush">
         {% for p in posts %}
           <li id="post-{{ p.post_id }}" class="list-group-item"> 
             <div class="d-flex justify-content-between align-items-start">
@@ -22,13 +24,15 @@
                       hx-post="{{ url_for('admin.admin_delete_post', post_id=p.post_id) }}"
                       hx-target="#post-{{ p.post_id }}"
                       hx-swap="outerHTML"
-                      hx-disabled-elt="button"
                       class="m-0">
                   {{ csrf_form.hidden_tag() }}
                   <button class="btn btn-outline-danger btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
                           style="width:28px;height:28px"
                           title="Delete">
-                    <i class="bi bi-trash3"></i>
+                    <!-- inline trash SVG so icon is visible without external icon CSS -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5V6h1v8a2 2 0 0 1-2 2H4.5a2 2 0 0 1-2-2V6h1v-.5zM14.5 3a1 1 0 0 1-1 1H12v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V4H2.5a1 1 0 0 1-1-1V2h13v1zM6 1.5A1.5 1.5 0 0 1 7.5 0h1A1.5 1.5 0 0 1 10 1.5V2h-4v-.5z"/>
+                    </svg>
                     <span class="visually-hidden">Delete</span>
                   </button>
                 </form>
@@ -61,7 +65,9 @@
         <span class="fw-semibold">Support contacts</span>
         <span class="badge text-bg-secondary">{{ contacts|length }}</span>
       </div>
-      <ul id="contacts-list" class="list-group list-group-flush">
+
+      <!-- NOTE: id must be 'support-contacts-list' to match hx-target used by the compose form and the route fragment -->
+      <ul id="support-contacts-list" class="list-group list-group-flush">
         {% for c in contacts %}
           <li id="contact-{{ c.contact_id }}" class="list-group-item">
             <div class="d-flex justify-content-between align-items-start">
@@ -80,13 +86,16 @@
                     hx-post="{{ url_for('admin.admin_delete_contact', contact_id=c.contact_id) }}"
                     hx-target="#contact-{{ c.contact_id }}"
                     hx-swap="outerHTML"
-                    hx-disabled-elt="button"
                     class="m-0">
                 {{ csrf_form.hidden_tag() }}
                 <button type="submit"
                         class="btn btn-outline-danger btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
                         style="width:28px;height:28px" title="Delete">
-                  <i class="bi bi-trash3"></i><span class="visually-hidden">Delete</span>
+                  <!-- inline trash SVG -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5V6h1v8a2 2 0 0 1-2 2H4.5a2 2 0 0 1-2-2V6h1v-.5zM14.5 3a1 1 0 0 1-1 1H12v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V4H2.5a1 1 0 0 1-1-1V2h13v1zM6 1.5A1.5 1.5 0 0 1 7.5 0h1A1.5 1.5 0 0 1 10 1.5V2h-4v-.5z"/>
+                  </svg>
+                  <span class="visually-hidden">Delete</span>
                 </button>
               </form>
             </div>

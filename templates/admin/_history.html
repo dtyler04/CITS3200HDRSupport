@@ -13,7 +13,9 @@
         <span class="fw-semibold">Messages</span>
         <span class="badge text-bg-secondary">{{ messages|length }}</span>
       </div>
-      <ul class="list-group list-group-flush">
+
+      <!-- HTMX target: messages-list -->
+      <ul id="messages-list" class="list-group list-group-flush">
         {% for m in messages %}
           <li class="list-group-item">
             <div class="d-flex justify-content-between align-items-start">
@@ -45,7 +47,9 @@
         <span class="fw-semibold">Reminders</span>
         <span class="badge text-bg-secondary">{{ reminders|length }}</span>
       </div>
-      <ul class="list-group list-group-flush">
+
+      <!-- HTMX target: reminders-list -->
+      <ul id="reminders-list" class="list-group list-group-flush">
         {% for r in reminders %}
           <li class="list-group-item">
             <div class="d-flex justify-content-between align-items-start">

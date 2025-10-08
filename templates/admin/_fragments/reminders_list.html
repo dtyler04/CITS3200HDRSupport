@@ -1,0 +1,21 @@
+<ul id="reminders-list" class="list-group list-group-flush">
+  {% for r in reminders %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="fw-semibold me-2">{{ r.title }}</div>
+        <span class="badge text-bg-light text-body-secondary">
+          {{ r.scheduled_at.strftime('%d %b %Y, %H:%M') if r.scheduled_at else '—' }}
+        </span>
+      </div>
+      <div class="mt-2 small">
+        <span class="badge rounded-pill border bg-primary-subtle text-primary-emphasis me-1">{{ r.degree_type_target or 'All degrees' }}</span>
+        <span class="badge rounded-pill border bg-success-subtle text-success-emphasis me-1">{{ r.location_target or 'All locations' }}</span>
+        <span class="badge rounded-pill border bg-info-subtle text-info-emphasis me-1">{{ r.stage_target or 'All stages' }}</span>
+        {{ ui.unit_chips(r.unit_target) }}
+      </div>
+      <p class="mb-0 mt-2 small text-body-secondary">{{ r.content }}</p>
+    </li>
+  {% else %}
+    <li class="list-group-item text-muted">No reminders.</li>
+  {% endfor %}
+</ul>

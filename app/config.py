@@ -2,12 +2,14 @@ import os
 from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-default_database_location = 'sqlite:///' + os.path.join(basedir, 'app.db')
+default_database_location = 'sqlite:///' + os.path.join(basedir, 'mydb.sqlite3')
 load_dotenv(os.path.join(basedir, ".env"))
 
 class Config:
     DEBUG=True
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL') or default_database_location
+    SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI') or default_database_location
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     # You can configure app settings here, e.g. secret key
     SECRET_KEY = os.getenv("SECRET_KEY")
     SESSION_COOKIE_HTTPONLY = True  # JS cannot read cookie
