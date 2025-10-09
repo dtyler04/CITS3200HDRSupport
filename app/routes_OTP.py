@@ -21,6 +21,31 @@ def verify_page():
                            form=VerifyOTPForm(),
                            resend_form=ResendOTPForm())
 
+@otp_bp.get("/verify-password")
+def verify_password_page():
+    if "password_verify_email" not in session:
+        flash("Unauthorized access. Please request a new password reset.", "danger")
+        return redirect(url_for("main.reset_password"))
+    return render_template("verify_password.html", form=VerifyOTPForm(), resend_form=ResendOTPForm())
+
+@otp_bp.post("/verify-password")
+def verify_password_code():
+    form = VerifyOTPForm()
+    if form.validate_on_submit():
+        email = session.get("password_verify_email")
+        if not email:
+            flash("No email pending verification. Please request reset first.", "warning")
+            return redirect(url_for("main.reset_password"))
+
+        if _svc().verify_otp(email, form.code.data):
+            flash("Code verified successfully!", "success")
+            return redirect(url_for("main.update_password_page"))
+        else:
+            flash("Invalid or expired code.", "danger")
+    else:
+        flash("Enter the 6-digit code.", "danger")
+    return redirect(url_for("otp.verify_password_page"))
+
 @otp_bp.post("/verify")
 def verify_submit():
     form = VerifyOTPForm()

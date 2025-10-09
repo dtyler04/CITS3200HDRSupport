@@ -1,5 +1,5 @@
 from .check import login_required
-from .forms import LoginForm, StudentSignUpForm, ResetPasswordRequestForm, ResetPasswordRequestForm
+from .forms import LoginForm, StudentSignUpForm, ResetPasswordRequestForm, ResetPasswordForm
 from .check import login_required
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, request, current_app, send_from_directory, Blueprint
@@ -179,15 +179,15 @@ def reset_password_submit():
     if form.validate_on_submit():
         svc = current_app.extensions["email_otp"]
         svc.send_otp(form.email.data)
-        session["pending_verify_email"] = form.email.data
+        session["password_verify_email"] = form.email.data
         
         flash("We emailed you a 6-digit verification code.", "info")
-        return redirect(url_for("otp.verify_page"))   # <-- go to OTP input page
+        return redirect(url_for("otp.verify_password_page"))   # <-- go to OTP input page
     return render_template("reset_password.html", form=form)
     
 @main_bp.get("/update-password")
 def update_password_page():
-    if "reset_password_email" not in session:
+    if "password_verify_email" not in session:
         flash("Unauthorized access. Please request a new password reset.", "danger")
         return redirect(url_for("main.reset_password"))
     return render_template("update_password.html", form=ResetPasswordForm())
@@ -202,7 +202,7 @@ def update_password_submit():
         flash("Passwords do not match.", "danger")
         return render_template("update_password.html", form=form)
 
-    email = session.get("pending_verify_email")
+    email = session.get("password_verify_email")
     if not email:
         flash("Session expired. Please request password reset again.", "warning")
         return redirect(url_for("main.reset_password"))
@@ -217,7 +217,7 @@ def update_password_submit():
     db.session.commit()
 
     # Clear session state
-    session.pop("pending_verify_email", None)
+    session.pop("password_verify_email", None)
 
     flash("Password updated successfully. You can now log in.", "success")
     return redirect(url_for("main.login_page"))
