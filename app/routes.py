@@ -1,5 +1,5 @@
 from .check import login_required
-from .forms import LoginForm, StudentSignUpForm, ResetPasswordRequestForm
+from .forms import LoginForm, StudentSignUpForm, ResetPasswordRequestForm, ResetPasswordRequestForm
 from .check import login_required
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, request, current_app, send_from_directory, Blueprint
@@ -167,27 +167,57 @@ def preview_email(user_id):
     messages, assessments = get_student_updates(user_id)
     return render_template("weekly_email.html", messages=messages, assessments=assessments)
 
+# Show reset password request form
 @main_bp.get("/reset-password")
 def reset_password():
-    return render_template("reset_password.html")
+    return render_template("reset_password.html", form=ResetPasswordRequestForm())
 
+# Handle reset password form submission
 @main_bp.post("/reset-password")
-def get_form():
+def reset_password_submit():
     form = ResetPasswordRequestForm()
-    # Validate form
-
-
     if form.validate_on_submit():
-        # Process the form data here (e.g., send reset email)
         svc = current_app.extensions["email_otp"]
         svc.send_otp(form.email.data)
         session["pending_verify_email"] = form.email.data
         
-        flash("If the email exists, a reset link has been sent.", "info")
-        return redirect(url_for("main.login_page"))
+        flash("We emailed you a 6-digit verification code.", "info")
+        return redirect(url_for("otp.verify_page"))   # <-- go to OTP input page
+    return render_template("reset_password.html", form=form)
     
-@main_bp.get("/")
-# Create reset password route which is executed when user submits the form
-# The process has to be linked to otp.py
-# Send otp through here
-# Create another route saying update password and direct back to login page
+@main_bp.get("/update-password")
+def update_password_page():
+    if "reset_password_email" not in session:
+        flash("Unauthorized access. Please request a new password reset.", "danger")
+        return redirect(url_for("main.reset_password"))
+    return render_template("update_password.html", form=ResetPasswordForm())
+
+@main_bp.post("/update-password")
+def update_password_submit():
+    form = ResetPasswordForm()
+    if not form.validate_on_submit():
+        return render_template("update_password.html", form=form)
+
+    if form.password.data != form.confirm_password.data:
+        flash("Passwords do not match.", "danger")
+        return render_template("update_password.html", form=form)
+
+    email = session.get("pending_verify_email")
+    if not email:
+        flash("Session expired. Please request password reset again.", "warning")
+        return redirect(url_for("main.reset_password"))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for("main.reset_password"))
+
+    # Save new password
+    user.password = generate_password_hash(form.password.data)
+    db.session.commit()
+
+    # Clear session state
+    session.pop("pending_verify_email", None)
+
+    flash("Password updated successfully. You can now log in.", "success")
+    return redirect(url_for("main.login_page"))
