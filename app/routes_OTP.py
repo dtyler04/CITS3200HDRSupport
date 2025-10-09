@@ -84,7 +84,7 @@ def verify_submit():
 
     enrollment_update = EnrollmentUpdate(
         user_id=user.user_id,
-        degreeCode=pending["degree_code"],
+        degree_code=pending["degree_code"],
         location=pending["location"],
         initialisation=False,
         study_mode=pending["enrollment_status"],

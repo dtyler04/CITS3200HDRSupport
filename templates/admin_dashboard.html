@@ -12,8 +12,8 @@
     </button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="false">
-      Email Editor
+    <button class="nav-link" id="tinymce-tab" data-bs-toggle="tab" data-bs-target="#tinymce" type="button" role="tab" aria-controls="tinymce" aria-selected="false">
+      TinyMCE Editor
     </button>
   </li>
   <li class="nav-item" role="presentation">
@@ -172,10 +172,10 @@
     </ul>
   </div>
 
-  <!-- Email Editor -->
-  <div class="tab-pane fade" id="email" role="tabpanel" aria-labelledby="email-tab">
-    <h4>Create / Manage Emails</h4>
-    {% include "email_editor.html" %}
+  <!-- TinyMCE Editor -->
+  <div class="tab-pane fade" id="tinymce" role="tabpanel" aria-labelledby="tinymce-tab">
+    <h4>TinyMCE Rich Text Editor</h4>
+    {% include "tinyMCE.html" %}
   </div>
 
   <!-- Manage User (rights) -->
@@ -222,4 +222,10 @@
     </div>
   </div>
 </div>
+
+<!-- TinyMCE Scripts - loaded at page level for proper tab functionality -->
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="{{ url_for('static', filename='tinymce/js/tinymce/tinymce.min.js') }}"></script>
+<script src="{{ url_for('static', filename='admin_dashboard.js') }}"></script>
+
 {% endblock %}
