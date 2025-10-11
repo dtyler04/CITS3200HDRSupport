@@ -1,10 +1,10 @@
 from .check import login_required
-from .forms import LoginForm, StudentSignUpForm, ResetPasswordRequestForm, ResetPasswordForm
+
+from .forms import LoginForm, StudentSignUpForm, UnitEnrollmentForm, CSRFOnlyForm, ResetPasswordRequestForm, ResetPasswordForm
 from .check import login_required
 from .models import *
-from flask import render_template, redirect, url_for, flash, session, request, current_app, send_from_directory, Blueprint
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from flask import render_template, redirect, url_for, flash, session, current_app, Blueprint
+from werkzeug.security import check_password_hash
 
 main_bp = Blueprint("main", __name__, url_prefix='')
 
@@ -44,6 +44,7 @@ def login():
             session.clear()
             session.permanent = True # Lifetime based on config 
             session['uid'] = user.user_id  
+            session['email'] = user.email
             has_admin_right = Right.query.filter_by(
                                     user_id=user.user_id,
                                     permission_number=1 # Put admin number according(.e.g admin)
@@ -122,17 +123,21 @@ def student_dashboard():
 
     wellbeing_posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
     contacts = SupportContact.query.order_by(SupportContact.service_type).all()
-
+    user_units = Unit.query.filter_by(user_id=session['uid']).all()
     return render_template(
         "student_dashboard.html",
         first_name=user.first_name,
         reminders=reminders,
         messages=messages,
         wellbeing_posts=wellbeing_posts,
-        contacts=contacts
+        contacts=contacts,
+        user_units=user_units,
+        unit_enroll_form=UnitEnrollmentForm(),
+        unit_unenroll_form=CSRFOnlyForm()
     )
 
 @main_bp.route("/profile")
+@login_required
 def profile():
     return render_template("profile.html", first_name="John", last_name="Doe")
 

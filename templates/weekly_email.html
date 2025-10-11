@@ -1,17 +1,177 @@
-<h2>Hello {{user.first_name}}</h2>
-
-<p>Here is your messages for this week</p>
-<ul>
-    {% for message in messages %}
-        <li><strong>Week {{ message.week_released }}:</strong> {{ message.content }}</li>
-    {% empty %}
-        <li>No messages this week.</li>
-    {% endfor %}
-</ul>
-<!--Assessment Section-->
-<p>Here are your assessments for this week</p>
-<ul>
-    {% for a in assessments %}
-    <li><strong>{{ a.title }}</strong> (due {{ a.due_date.strftime('%d %b %Y') }})</li>
-    {% endfor %}
-</ul>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly HDR Support Update</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        /* Email container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .email-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .email-header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* Content sections */
+        .email-content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        /* Messages section */
+        .message-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .message-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        
+        .message-week {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .message-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #495057;
+        }
+        
+        
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <h1>Hello {{ user.first_name if user else 'Student' }}!</h1>
+            <p class="subtitle">Your Weekly HDR Support Update</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="email-content">
+            <!-- Messages Section -->
+            <div class="section">
+                <h2 class="section-title">This Week's Messages</h2>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="message-item">
+                            <div class="message-week">Week {{ message.week_released }}</div>
+                            <div class="message-content">{{ message.content }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">No messages this week</div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Assessments Section -->
+            <div class="section">
+                <h2 class="section-title">Upcoming Assessments</h2>
+                {% if assessments %}
+                    {% for assessment in assessments %}
+                        <div class="assessment-item">
+                            <div class="assessment-title">{{ assessment.title }}</div>
+                            <div class="assessment-due">Due: {{ assessment.due_date.strftime('%d %b %Y') if assessment.due_date else 'TBA' }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div class="empty-state-text">No upcoming assessments this week</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p class="footer-text">HDR Support at Time of Need</p>
+            <p class="footer-text">University of Western Australia</p>
+            <div class="footer-links">
+                <a href="#">Student Portal</a>
+                <a href="#">Support Resources</a>
+                <a href="#">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

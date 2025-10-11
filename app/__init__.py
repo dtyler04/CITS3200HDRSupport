@@ -39,9 +39,11 @@ def create_app():
     from .routes_admin import admin_bp
     from .routes_OTP import otp_bp
     from .routes import main_bp
+    from .routes_unit import unit_bp 
     app.register_blueprint(admin_bp)
     app.register_blueprint(otp_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(unit_bp)
 
     from .services.emailOTP import EmailOTPService
     from .services.mailchimp_service import MailchimpService

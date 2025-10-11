@@ -2,6 +2,7 @@ from mailchimp_marketing import Client
 from mailchimp_marketing.api_client import ApiClientError
 import hashlib, os
 from dotenv import load_dotenv
+import logging
 
 class MailchimpService:
     def __init__(self):
@@ -21,11 +22,13 @@ class MailchimpService:
     def ping(self):
         return self.client.ping.get()
 
-    def upsert_member(self, email, first_name="", last_name="", status_if_new="pending"):
+    # Add or update a member in the mailing list
+    def upsert_member(self, email, first_name="", last_name="", status_if_new="subscribed", status='subscribed'):
         sub_hash = self._subscriber_hash(email)
         body = {
             "email_address": email,
             "status_if_new": status_if_new,
+            "status": status,
             "merge_fields": {"FNAME": first_name, "LNAME": last_name}
         }
         try:
@@ -63,6 +66,32 @@ class MailchimpService:
             logging.error(f"Mailchimp delete member error: {e.text}")
             return False
         except Exception as e:
-            import logging
-            logging.error(f"Unexpected error deleting member: {e}")
             return False
+
+    # Use this when a student enrolls/starts a unit  
+    def add_unit_tag(self, email, unit_code):
+        sub_hash = self._subscriber_hash(email)
+        body = {
+            "tags": [{"name": unit_code, "status": "active"}]
+        }
+        try:
+            return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
+        except ApiClientError as e:
+            logging.error(f"Mailchimp API error (add_unit_tag) for {email} - {unit_code}: {e.text}")
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error adding unit tag for {email} - {unit_code}: {e}")
+            raise
+
+    # Use this when a student unenrolls/finishes from a unit
+    def remove_unit_tag(self, email, unit_code):
+        sub_hash = self._subscriber_hash(email)
+        body = {"tags": [{"name": unit_code, "status": "inactive"}]}
+        try:
+            return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
+        except ApiClientError as e:
+            logging.error(f"Mailchimp API error (remove_unit_tag) for {email} - {unit_code}: {getattr(e, 'text', str(e))}")
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error removing unit tag for {email} - {unit_code}: {e}")
+            raise

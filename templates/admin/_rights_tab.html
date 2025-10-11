@@ -1,0 +1,70 @@
+<div class="row g-4">
+  <!-- Change User Permission -->
+  <div class="col-md-6">
+    <div class="card p-3 shadow-sm border-0">
+      <h5 class="mb-3">Change User Permission</h5>
+      <form
+        hx-post="{{ url_for('admin.change_right') }}"
+        hx-target="#flash-container"
+        hx-swap="outerHTML"
+        hx-trigger="submit"
+        hx-on::after-request="if(event.detail.successful) this.reset()"
+      >
+        {{ form_right.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form_right.user_id.label(class="form-label fw-semibold") }}
+          {{ form_right.user_id(class="form-control", placeholder="User ID") }}
+          {% for e in form_right.user_id.errors %}
+            <div class="text-danger small">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form_right.permission_number.label(class="form-label fw-semibold") }}
+          {{ form_right.permission_number(class="form-select") }}
+          {% for e in form_right.permission_number.errors %}
+            <div class="text-danger small">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+          {{ form_right.submit.label.text }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete User Account -->
+  <div class="col-md-6">
+    <div class="card p-3 shadow-sm border-0">
+      <h5 class="mb-3 text-danger">Delete User Account</h5>
+      <p class="mb-2 small text-body-secondary">
+        Delete a user from both the database and Mailchimp.
+        <span class="text-danger fw-semibold">This action cannot be undone.</span>
+      </p>
+
+      <form
+        hx-post="{{ url_for('admin.delete_account') }}"
+        hx-target="#flash-container"
+        hx-swap="outerHTML"
+        hx-trigger="submit"
+        hx-on::after-request="if(event.detail.successful) this.reset()"
+      >
+        {{ form_delete.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form_delete.user_id.label(class="form-label fw-semibold") }}
+          {{ form_delete.user_id(class="form-control", placeholder="User ID") }}
+          {% for e in form_delete.user_id.errors %}
+            <div class="text-danger small">{{ e }}</div>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-danger w-100">
+          {{ form_delete.submit.label.text }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
