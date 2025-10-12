@@ -160,6 +160,474 @@
     </div>
 </div>
 
+<!-- Progression Timeline - Full width horizontal bar -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="m-0">Your Progression Timeline</h5>
+                <div>
+                    <a href="{{ url_for('main.update_enrollment') }}" class="btn btn-sm btn-outline-primary">Update Enrollment</a>
+                    <small class="text-muted ms-2">
+                        Week <span id="current-week" class="fw-bold">--</span> | Day <span id="current-day" class="fw-bold">--</span>
+                    </small>
+                </div>
+            </div>
+            
+            <div class="timeline-container">
+                <div class="timeline-header d-flex justify-content-between text-muted small mb-2" id="timeline-header">
+                    <!-- Dynamic week markers with dates will be added here -->
+                </div>
+                <div class="timeline-track" id="timeline-track">
+                    <div class="timeline-progress" id="timeline-progress"></div>
+                    <div class="timeline-current-marker" id="timeline-current-marker"></div>
+                    <div class="timeline-assessments" id="timeline-assessments">
+                        <!-- Assessment markers will be added dynamically -->
+                    </div>
+                    <!-- Timeline segments will be added dynamically -->
+                </div>
+                <div class="timeline-legend mt-2">
+                    <div class="d-flex flex-wrap gap-3 small">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #28a745;"></span>
+                            Full-time
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #ffc107;"></span>
+                            Part-time
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #dc3545;"></span>
+                            Current Position
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color assessment-marker-legend"></span>
+                            Assessment Due
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: #dc3545;"></span>
+                            Current Position
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline-container {
+    position: relative;
+    width: 100%;
+}
+
+.timeline-track {
+    position: relative;
+    height: 40px;
+    background-color: #e9ecef;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+}
+
+.timeline-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        #28a745 0%, 
+        #28a745 var(--fulltime-end, 0%), 
+        #ffc107 var(--fulltime-end, 0%), 
+        #ffc107 100%);
+    border-radius: 20px;
+    transition: width 0.3s ease;
+}
+
+.timeline-current-marker {
+    position: absolute;
+    top: -2px;
+    height: 44px;
+    width: 3px;
+    background-color: #dc3545;
+    border-radius: 2px;
+    transition: left 0.3s ease;
+}
+
+.timeline-segment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.timeline-segment:hover {
+    opacity: 0.8;
+}
+
+.timeline-segment.fulltime {
+    background-color: #28a745;
+}
+
+.timeline-segment.parttime {
+    background-color: #ffc107;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.timeline-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translateX(-50%);
+    top: -50px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.timeline-tooltip.show {
+    opacity: 1;
+}
+
+/* Assessment markers */
+.timeline-assessments {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    pointer-events: none;
+}
+
+.assessment-marker {
+    position: absolute;
+    width: 3px;
+    height: 50px;
+    background: linear-gradient(to bottom, #6c757d 0%, #6c757d 40%, transparent 40%, transparent 60%, #6c757d 60%, #6c757d 100%);
+    cursor: pointer;
+    pointer-events: all;
+    transition: background-color 0.2s ease;
+    z-index: 20;
+}
+
+.assessment-marker:hover {
+    background: linear-gradient(to bottom, #495057 0%, #495057 40%, transparent 40%, transparent 60%, #495057 60%, #495057 100%);
+}
+
+.assessment-marker:hover::before {
+    background-color: #495057;
+}
+
+.assessment-marker-legend {
+    background: linear-gradient(to right, #6c757d 30%, transparent 30%, transparent 70%, #6c757d 70%);
+    position: relative;
+}
+
+.assessment-marker-legend::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background-color: #6c757d;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+
+.assessment-tooltip {
+    position: absolute;
+    background: rgba(33, 37, 41, 0.95);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    pointer-events: none;
+    z-index: 1001;
+    transform: translateX(-50%);
+    top: -80px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    max-width: 250px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.assessment-tooltip.show {
+    opacity: 1;
+}
+
+.assessment-tooltip .assessment-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #fff;
+}
+
+.assessment-tooltip .assessment-week {
+    color: #adb5bd;
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.assessment-tooltip .assessment-description {
+    color: #dee2e6;
+    line-height: 1.3;
+}
+</style>
+
+<script>
+// Timeline functionality
+async function initializeTimeline() {
+    try {
+        const response = await fetch('/api/timeline-data');
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Timeline error:', data.error);
+            return;
+        }
+        
+        renderTimeline(data.weeks, data.timeline_periods, data.current_day, data.current_week, data.total_weeks);
+        
+        // Render assessments if they exist
+        if (data.assessments && data.assessments.length > 0) {
+            renderAssessments(data.assessments, data.total_weeks);
+            
+            // Show the legend
+            const legend = document.querySelector('.assessment-legend');
+            if (legend) {
+                legend.style.display = 'block';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Failed to load timeline data:', error);
+    }
+}
+
+function renderTimeline(weeks, timelinePeriods, currentDay, currentWeek, totalWeeks) {
+    const track = document.getElementById('timeline-track');
+    const currentMarker = document.getElementById('timeline-current-marker');
+    const currentDaySpan = document.getElementById('current-day');
+    const currentWeekSpan = document.getElementById('current-week');
+    const timelineHeader = document.getElementById('timeline-header');
+    
+    const totalDays = totalWeeks * 7;
+    
+    // Update current day and week display
+    currentDaySpan.textContent = currentDay;
+    currentWeekSpan.textContent = currentWeek;
+    
+    // Position current day marker
+    const currentPosition = Math.min((currentDay / totalDays) * 100, 100);
+    currentMarker.style.left = currentPosition + '%';
+    
+    // Create timeline header with weeks and dates
+    timelineHeader.innerHTML = '';
+    const headerWeeks = [1, 13, 26, 39, 52];
+    headerWeeks.forEach(weekNum => {
+        const weekData = weeks.find(w => w.week_number === weekNum);
+        if (weekData) {
+            const headerItem = document.createElement('div');
+            headerItem.className = 'text-center';
+            const date = new Date(weekData.real_date);
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            headerItem.innerHTML = `
+                <div class="fw-bold">Week ${weekNum}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">${formattedDate}</div>
+            `;
+            timelineHeader.appendChild(headerItem);
+        }
+    });
+    
+    // Clear existing segments
+    const existingSegments = track.querySelectorAll('.timeline-segment');
+    existingSegments.forEach(segment => segment.remove());
+    
+    // Create segments for each enrollment period
+    timelinePeriods.forEach((segment, index) => {
+        const segmentElement = document.createElement('div');
+        segmentElement.className = `timeline-segment ${segment.study_mode.replace('-', '')}`;
+        
+        const startPercent = (segment.start_day / totalDays) * 100;
+        const endPercent = Math.min((segment.end_day / totalDays) * 100, 100);
+        const width = endPercent - startPercent;
+        
+        segmentElement.style.left = startPercent + '%';
+        segmentElement.style.width = width + '%';
+        
+        // Add tooltip with enhanced information
+        const tooltip = document.createElement('div');
+        tooltip.className = 'timeline-tooltip';
+        
+        const startWeek = Math.floor(segment.start_day / 7) + 1;
+        const endWeek = Math.floor(segment.end_day / 7) + 1;
+        const startDate = new Date(segment.start_date);
+        const endDateStr = segment.end_date ? new Date(segment.end_date).toLocaleDateString() : 'Present';
+        
+        tooltip.innerHTML = `
+            <strong>${segment.study_mode.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</strong><br>
+            ${segment.location.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}<br>
+            Weeks ${startWeek} - ${endWeek}<br>
+            ${startDate.toLocaleDateString()} - ${endDateStr}<br>
+            ${segment.stage.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+        `;
+        
+        // Tooltip events
+        segmentElement.addEventListener('mouseenter', (e) => {
+            document.body.appendChild(tooltip);
+            tooltip.classList.add('show');
+        });
+        
+        segmentElement.addEventListener('mousemove', (e) => {
+            tooltip.style.left = e.pageX + 'px';
+            tooltip.style.top = e.pageY + 'px';
+        });
+        
+        segmentElement.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip);
+            }
+        });
+        
+        track.appendChild(segmentElement);
+    });
+}
+
+function renderAssessments(assessments, totalWeeks) {
+    const assessmentMarkers = document.getElementById('timeline-assessments');
+    if (!assessmentMarkers) {
+        console.error('timeline-assessments element not found');
+        return;
+    }
+    
+    assessmentMarkers.innerHTML = ''; // Clear existing markers
+    
+    const totalDays = totalWeeks * 7;
+    
+    assessments.forEach((assessment, index) => {
+        // Create marker line
+        const marker = document.createElement('div');
+        marker.className = 'assessment-marker';
+        
+        // Calculate position based on due week
+        const dueDay = (assessment.due_week - 1) * 7; // Convert week to days
+        const position = (dueDay / totalDays) * 100;
+        marker.style.left = position + '%';
+        
+        // Add a label to show week number for debugging
+        const label = document.createElement('div');
+        label.style.cssText = `
+            position: absolute;
+            top: 55px;
+            left: -10px;
+            font-size: 10px;
+            color: #6c757d;
+            background: white;
+            padding: 1px 3px;
+            border-radius: 2px;
+            white-space: nowrap;
+        `;
+        label.textContent = `W${assessment.due_week}`;
+        marker.appendChild(label);
+        
+        // Create circle element manually instead of relying on CSS ::before
+        const circle = document.createElement('div');
+        circle.style.cssText = `
+            position: absolute;
+            top: 20px;
+            left: -4px;
+            width: 11px;
+            height: 11px;
+            background-color: #6c757d;
+            border: 2px solid white;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+            z-index: 25;
+            pointer-events: none;
+        `;
+        marker.appendChild(circle);
+        
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'assessment-tooltip';
+        tooltip.innerHTML = `
+            <div class="assessment-title">${assessment.title}</div>
+            <div class="assessment-week">Due: Week ${assessment.due_week}</div>
+            <div>${assessment.description || 'No description available'}</div>
+        `;
+        
+        // Add click and hover events to the marker itself
+        marker.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Hide other tooltips
+            document.querySelectorAll('.assessment-tooltip.show').forEach(t => {
+                t.classList.remove('show');
+            });
+            
+            // Show this tooltip
+            document.body.appendChild(tooltip);
+            tooltip.classList.add('show');
+            
+            // Position tooltip near the marker
+            const rect = marker.getBoundingClientRect();
+            tooltip.style.left = (rect.left + window.scrollX) + 'px';
+            tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 10) + 'px';
+        });
+        
+        marker.addEventListener('mouseenter', () => {
+            marker.style.transform = 'scale(1.1)';
+            circle.style.backgroundColor = '#495057';
+        });
+        
+        marker.addEventListener('mouseleave', () => {
+            marker.style.transform = 'scale(1)';
+            circle.style.backgroundColor = '#6c757d';
+        });
+        
+        assessmentMarkers.appendChild(marker);
+    });
+    
+    // Close tooltips when clicking elsewhere
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.assessment-marker')) {
+            document.querySelectorAll('.assessment-tooltip.show').forEach(tooltip => {
+                tooltip.classList.remove('show');
+                if (tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+            });
+        }
+    });
+}
+
+// Initialize timeline when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTimeline();
+});
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const btnRem = document.getElementById('showReminders');

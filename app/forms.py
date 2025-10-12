@@ -175,3 +175,56 @@ class ResetPasswordForm(FlaskForm):
         render_kw={"placeholder": "Confirm new password"}
     )
     submit = SubmitField("Update Password")
+
+class EnrollmentUpdateForm(FlaskForm):
+    """Form for students to update their enrollment status"""
+    study_mode = SelectField(
+        'Study Mode',
+        choices=[('full-time', 'Full-time'), ('part-time', 'Part-time')],
+        validators=[DataRequired()]
+    )
+    location = SelectField(
+        'Location',
+        choices=[('online', 'Online'), ('on-campus', 'On-campus')],
+        validators=[DataRequired()]
+    )
+    stage = SelectField(
+        'Stage of Candidature',
+        choices=[
+            ('commencing', 'Commencing'),
+            ('mid-candidature', 'Mid-candidature'),
+            ('late-candidature', 'Late-candidature'),
+            ('thesis-submission', 'Thesis Submission')
+        ],
+        validators=[DataRequired()]
+    )
+    effective_date = StringField(
+        'Effective Date',
+        validators=[DataRequired()],
+        render_kw={'type': 'date', 'placeholder': 'YYYY-MM-DD'}
+    )
+    submit = SubmitField('Update Enrollment')
+
+class AssessmentForm(FlaskForm):
+    """Form for admins to create assessments"""
+    title = StringField(
+        'Assessment Title',
+        validators=[DataRequired(), Length(max=120)],
+        render_kw={'placeholder': 'e.g., Research Proposal'}
+    )
+    description = TextAreaField(
+        'Description',
+        validators=[DataRequired()],
+        render_kw={'placeholder': 'Detailed description of the assessment requirements', 'rows': 4}
+    )
+    degree_code = StringField(
+        'Degree Code',
+        validators=[DataRequired(), Length(min=8, max=8)],
+        render_kw={'placeholder': 'e.g., CITS3200'}
+    )
+    due_week = IntegerField(
+        'Due Week',
+        validators=[DataRequired(), NumberRange(min=1, max=52, message="Week must be between 1 and 52")],
+        render_kw={'placeholder': 'Week number (1-52)'}
+    )
+    submit = SubmitField('Create Assessment')
