@@ -132,3 +132,16 @@ class EmailLog(db.Model):
     mailchimp_id = db.Column(db.String(255), nullable=True)  # To store Mailchimp message ID for reference
     
     user = db.relationship('User', backref='email_logs', lazy=True)
+
+class WeeklyContent(db.Model):
+    __tablename__ = "weekly_content"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    unit_code = db.Column(db.String(50), nullable=False, default=None) # e.g. CITS3001,etc or None
+    degree_type_target = db.Column(db.String(50), nullable=True)  # Masters, PhD or None.
+    week_released = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey("Users.user_id"), nullable=True)
+    creator = db.relationship("User", backref=db.backref("weekly_contents", lazy=True))

@@ -72,26 +72,6 @@ class StudentSignUpForm(FlaskForm):
     additional_info = TextAreaField('Additional Information')
     submit = SubmitField('Sign Up')
 
-class EmailEditor(FlaskForm):
-    message_id = HiddenField()
-    message_content = HiddenField(
-        validators=[DataRequired(message="Content cannot be empty.")],
-        render_kw={"id": "message_content"} 
-    )
-
-    degree_code = StringField(
-        "degree_code",
-        validators=[DataRequired(), Length(max=64)],
-        render_kw={"placeholder": "Degree Code", "required": True}
-    )
-    week_released = IntegerField(
-        "week_released",
-        validators=[DataRequired(), NumberRange(min=1)],
-        render_kw={"placeholder": "Week Released", "required": True}
-    )
-
-    save = SubmitField("Save", render_kw={"class": "btn btn-primary me-2"})
-
 class ChangeRightForm(FlaskForm):
     user_id = IntegerField('User ID', validators=[DataRequired()])
     permission_number = SelectField(
@@ -175,3 +155,32 @@ class ResetPasswordForm(FlaskForm):
         render_kw={"placeholder": "Confirm new password"}
     )
     submit = SubmitField("Update Password")
+
+class WeeklyForm(FlaskForm):
+    title = StringField("Title", validators=[DataRequired(), Length(max=200)])
+    unit_code = StringField('Unit Code', validators=[Optional(), UnitListValidator(max_units=20)], render_kw={'placeholder': 'Enter a single unit code e.g. CITS3001 or all'})
+    degree_type_target = SelectField('Degree type target', choices=[('','None'),('masters','Masters'), ('phd','PhD')], validators=[Optional()])
+    week_released = IntegerField("week_released",validators=[DataRequired(), NumberRange(min=1,max=52)])
+    submit = SubmitField("Save Content")
+
+    # Customic validation: ensure exactly one of degree_type_target or unit_code is set
+    def validate(self, **kwargs):
+        rv = super().validate(**kwargs)
+        if not rv:
+            return False
+        
+        degree_val = (self.degree_type_target.data or '').strip().lower()
+        unit_val = (self.unit_code.data or '').strip().upper()
+        has_degree = degree_val in ['masters', 'phd']
+        has_unit = bool(unit_val and unit_val not in ['ALL', '*'])
+
+        if has_degree and has_unit:
+            self.degree_type_target.errors.append("Choose either Degree Type or Unit Code — not both.")
+            self.degree_type_target.errors.append("Cannot use both fields at once.")
+            return False
+
+        if not has_degree and not has_unit:
+            self.degree_type_target.errors.append("Please select at least one targeting option (Degree or Unit).")
+            return False
+
+        return True

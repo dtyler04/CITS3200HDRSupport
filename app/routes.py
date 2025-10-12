@@ -4,7 +4,7 @@ from .forms import LoginForm, StudentSignUpForm, UnitEnrollmentForm, CSRFOnlyFor
 from .check import login_required
 from .models import *
 from flask import render_template, redirect, url_for, flash, session, current_app, Blueprint
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 main_bp = Blueprint("main", __name__, url_prefix='')
 
