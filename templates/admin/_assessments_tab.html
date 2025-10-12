@@ -1,0 +1,150 @@
+<h4>Assessment Management</h4>
+
+<div class="row">
+  <!-- Create Assessment Form -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Create New Assessment</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin.admin_create_assessment') }}">
+          {{ assessment_form.hidden_tag() }}
+          
+          <div class="mb-3">
+            {{ assessment_form.title.label(class="form-label") }}
+            {{ assessment_form.title(class="form-control") }}
+            {% if assessment_form.title.errors %}
+              <div class="text-danger small">
+                {% for error in assessment_form.title.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          
+          <div class="mb-3">
+            {{ assessment_form.description.label(class="form-label") }}
+            {{ assessment_form.description(class="form-control") }}
+            {% if assessment_form.description.errors %}
+              <div class="text-danger small">
+                {% for error in assessment_form.description.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                {{ assessment_form.degree_code.label(class="form-label") }}
+                {{ assessment_form.degree_code(class="form-control") }}
+                {% if assessment_form.degree_code.errors %}
+                  <div class="text-danger small">
+                    {% for error in assessment_form.degree_code.errors %}{{ error }}{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                {{ assessment_form.due_week.label(class="form-label") }}
+                {{ assessment_form.due_week(class="form-control") }}
+                {% if assessment_form.due_week.errors %}
+                  <div class="text-danger small">
+                    {% for error in assessment_form.due_week.errors %}{{ error }}{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-grid">
+            {{ assessment_form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Assessment Guidelines -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Assessment Guidelines</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <h6>Creating Assessments:</h6>
+          <ul class="mb-0">
+            <li><strong>Title:</strong> Brief, descriptive name for the assessment</li>
+            <li><strong>Description:</strong> Detailed requirements and expectations</li>
+            <li><strong>Degree Code:</strong> Target specific degree program (8 characters)</li>
+            <li><strong>Due Week:</strong> Week number (1-52) when assessment is due</li>
+          </ul>
+        </div>
+        
+        <div class="alert alert-warning">
+          <h6>Timeline Integration:</h6>
+          <p class="mb-0">Assessments will appear on student progression timelines at the specified week. Students will see these as milestones in their degree journey.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Existing Assessments -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Existing Assessments</h5>
+      </div>
+      <div class="card-body">
+        {% if assessments %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Degree Code</th>
+                  <th>Due Week</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for assessment in assessments %}
+                <tr>
+                  <td><strong>{{ assessment.title }}</strong></td>
+                  <td><span class="badge bg-secondary">{{ assessment.degree_code }}</span></td>
+                  <td>
+                    <span class="badge bg-primary">Week {{ assessment.due_week }}</span>
+                  </td>
+                  <td>
+                    <div class="text-muted small" style="max-width: 300px;">
+                      {{ assessment.description[:100] }}{% if assessment.description|length > 100 %}...{% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    <form method="post" action="{{ url_for('admin.admin_delete_assessment', assessment_id=assessment.assessment_id) }}" style="display: inline;">
+                      {{ csrf_form.hidden_tag() }}
+                      <button type="submit" class="btn btn-sm btn-outline-danger" 
+                              onclick="return confirm('Are you sure you want to delete this assessment?')">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+            <h5>No Assessments Created</h5>
+            <p>Use the form above to create your first assessment.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

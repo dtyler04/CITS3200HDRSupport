@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Update Enrollment{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Update Enrollment Status</h2>
+    <p class="text-muted">Update your study mode, location, or stage of candidature. This will affect your progression timeline.</p>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Current Status</h5>
+                    {% set current_status = user.get_current_enrollment_status() %}
+                    {% if current_status %}
+                        <p><strong>Study Mode:</strong> {{ current_status.study_mode.replace('-', ' ').title() }}</p>
+                        <p><strong>Location:</strong> {{ current_status.location.replace('-', ' ').title() }}</p>
+                        <p><strong>Stage:</strong> {{ current_status.stage.replace('-', ' ').title() }}</p>
+                        <p><strong>Since:</strong> {{ current_status.start_date.strftime('%B %d, %Y') }}</p>
+                        <p><strong>Progression Day:</strong> {{ user.calculate_progression_day() }}</p>
+                    {% else %}
+                        <p class="text-muted">No enrollment history found. Please contact your administrator.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Update Enrollment</h5>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.study_mode.label(class="form-label") }}
+                            {{ form.study_mode(class="form-select") }}
+                            {% if form.study_mode.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.study_mode.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.location.label(class="form-label") }}
+                            {{ form.location(class="form-select") }}
+                            {% if form.location.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.location.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.stage.label(class="form-label") }}
+                            {{ form.stage(class="form-select") }}
+                            {% if form.stage.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.stage.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.effective_date.label(class="form-label") }}
+                            {{ form.effective_date(class="form-control") }}
+                            <small class="form-text text-muted">The date when this change takes effect</small>
+                            {% if form.effective_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.effective_date.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('main.student_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info mt-4">
+        <h6>Important Notes:</h6>
+        <ul class="mb-0">
+            <li><strong>Full-time study:</strong> Progresses at 1.0 FTE (normal pace)</li>
+            <li><strong>Part-time study:</strong> Progresses at 0.5 FTE (half pace - extends timeline)</li>
+            <li>Changes will affect when you receive scheduled messages and your progression timeline</li>
+            <li>All changes are tracked for timeline calculation purposes</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
