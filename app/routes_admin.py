@@ -1,6 +1,7 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response, session, jsonify
-from .forms import ChangeRightForm, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm, WeeklyForm
-from .models import Right, Message, User, Reminder, SupportPost, SupportContact, WeeklyContent
+
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response, session
+from .forms import ChangeRightForm, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm, WeeklyForm, AssessmentForm
+from .models import Right, Message, User, Reminder, SupportPost, SupportContact, WeeklyContent, Assessments
 from .check import login_and_rights_required
 from . import db
 from werkzeug.utils import secure_filename
@@ -18,13 +19,15 @@ def admin_dashboard():
     posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
     contacts = SupportContact.query.order_by(SupportContact.service_type).all()
     weekly_records = WeeklyContent.query.order_by(WeeklyContent.created_at.desc()).all()
+    assessments = Assessments.query.order_by(Assessments.due_week).all()
+
 
     return render_template("admin/admin_dashboard.html", 
                            csrf_form=CSRFOnlyForm(), weekly_form=WeeklyForm(),
                            form_right=ChangeRightForm(),
                            form_delete=DeleteAccountForm(),
                            msg_form=AdminMessageForm(), rem_form=AdminReminderForm(), post_form=SupportPostForm(), contact_form=SupportContactForm(),
-                           messages=messages, reminders=reminders, posts=posts, contacts=contacts, records=weekly_records
+                           messages=messages, reminders=reminders, posts=posts, contacts=contacts, records=weekly_records, assessments=AssessmentForm()
                            )
 
 @admin_bp.post("/admin-dashboard")
@@ -272,6 +275,43 @@ def admin_create_contact():
         if created_ok:
             resp.headers["HX-Trigger"] = "form-success"
         return resp
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/assessment/create")
+@login_and_rights_required(1)
+def admin_create_assessment():
+    form = AssessmentForm()
+    if form.validate_on_submit():
+        try:
+            assessment = Assessments(
+                title=form.title.data,
+                description=form.description.data,
+                degree_code=form.degree_code.data,
+                due_week=form.due_week.data
+            )
+            db.session.add(assessment)
+            db.session.commit()
+            flash(f"Assessment '{form.title.data}' created successfully for week {form.due_week.data}!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error creating assessment: {str(e)}", "danger")
+    else:
+        flash("Invalid assessment data. Please check your input.", "danger")
+    
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.post("/assessment/<int:assessment_id>/delete")
+@login_and_rights_required(1)
+def admin_delete_assessment(assessment_id):
+    assessment = Assessments.query.get_or_404(assessment_id)
+    try:
+        db.session.delete(assessment)
+        db.session.commit()
+        flash(f"Assessment '{assessment.title}' deleted successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting assessment: {str(e)}", "danger")
+    
     return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.post("/contact/<int:contact_id>/delete")
