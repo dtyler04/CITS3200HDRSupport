@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 from app import db
-from .models import User, Right, EnrollmentUpdate
+from .models import User, Right, EnrollmentUpdate, Enrollment
 from .forms import VerifyOTPForm, ResendOTPForm  
 
 otp_bp = Blueprint("otp", __name__, url_prefix="/otp")
@@ -90,8 +90,13 @@ def verify_submit():
         study_mode=pending["enrollment_status"],
         current_week=0
     )
+    
+    enrollment = Enrollment(
+        degree_code=pending["degree_code"],
+        degree_type=pending["degree_type"]
+    )
 
-    db.session.add_all([user, right, enrollment_update])
+    db.session.add_all([user, right, enrollment_update, enrollment])
     db.session.commit()
     session.pop("pending_verify_email", None)
 
@@ -101,6 +106,7 @@ def verify_submit():
                                 first_name=user.first_name,
                                 last_name=user.last_name
                                 )
+        mailchimp.add_degree_type_tag(email=user.email, degree_type=pending["degree_type"])
     except Exception as e:
         flash("Warning: Could not subscribe to mailing list.", "warning")
 

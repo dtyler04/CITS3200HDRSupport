@@ -1,12 +1,11 @@
 from .check import login_required
 
-from .forms import LoginForm, StudentSignUpForm, UnitEnrollmentForm, CSRFOnlyForm, ResetPasswordRequestForm, ResetPasswordForm, EnrollmentUpdateForm
+from .forms import LoginForm, StudentSignUpForm, UnitEnrollmentForm, CSRFOnlyForm, ResetPasswordRequestForm, ResetPasswordForm
 from .check import login_required
 from .models import *
 from app import db
-from flask import render_template, redirect, url_for, flash, session, current_app, Blueprint, request, jsonify
+from flask import render_template, redirect, url_for, flash, session, current_app, Blueprint, request
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
 
 main_bp = Blueprint("main", __name__, url_prefix='')
 
@@ -74,6 +73,7 @@ def signup():
                 "last_name": signup_form.last_name.data,
                 "email": signup_form.email.data,
                 "password": signup_form.password.data,  
+                "degree_type": signup_form.degree_type.data,
                 "degree_code": signup_form.degree_code.data,
                 "location": signup_form.location.data,
                 "enrollment_status": signup_form.enrollment_status.data,

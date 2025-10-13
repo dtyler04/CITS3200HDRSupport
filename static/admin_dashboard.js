@@ -1,13 +1,12 @@
-/**
- * Admin Dashboard JavaScript
- * Handles TinyMCE initialization, Word document import, and error suppression
- */
+window.tinyMCEInitialized = window.tinyMCEInitialized || false;
+if (window.__ADMIN_DASHBOARD_SCRIPT_LOADED__) {
+    console.log("admin_dashboard.js already loaded, skipping re-execution.");
+    throw new Error("Duplicate load prevented");
+}
+window.__ADMIN_DASHBOARD_SCRIPT_LOADED__ = true;
 
-// Don't load the original tinymce.js - we'll initialize manually for tab compatibility
-let tinyMCEInitialized = false;
-
-// Global error handler to suppress known TinyMCE errors
-window.addEventListener('error', function(e) {
+// ====== GLOBAL ERROR SUPPRESSION ======
+window.addEventListener('error', function (e) {
     if (e.message && (
         e.message.includes('Cannot read properties of undefined (reading \'then\')') ||
         e.message.includes('Cannot read properties of null') ||
@@ -19,8 +18,7 @@ window.addEventListener('error', function(e) {
     }
 });
 
-// Suppress unhandled promise rejections related to TinyMCE
-window.addEventListener('unhandledrejection', function(e) {
+window.addEventListener('unhandledrejection', function (e) {
     if (e.reason && e.reason.message && (
         e.reason.message.includes('image') ||
         e.reason.message.includes('upload') ||
@@ -32,86 +30,111 @@ window.addEventListener('unhandledrejection', function(e) {
     }
 });
 
-// Function to check if TinyMCE tab is active
+// ====== TAB CHECK HELPER ======
 function isTinyMCETabActive() {
-    const tinymceTab = document.getElementById('tinymce-tab');
-    const tinymceTabPane = document.getElementById('tinymce');
-    return (tinymceTab && tinymceTab.classList.contains('active')) || 
-           (tinymceTabPane && tinymceTabPane.classList.contains('active', 'show'));
+    const tab = document.getElementById('tinymce-tab');
+    const pane = document.getElementById('tinymce');
+    return (tab && tab.classList.contains('active')) ||
+           (pane && pane.classList.contains('active', 'show'));
 }
 
-// Initialize TinyMCE when the TinyMCE tab is shown
-document.addEventListener('DOMContentLoaded', function() {
+// ====== INITIALIZATION ======
+document.addEventListener('DOMContentLoaded', function () {
     const tinymceTab = document.getElementById('tinymce-tab');
-    const tinymceTabPane = document.getElementById('tinymce');
-    
-    // Check if TinyMCE tab is already active on page load
-    if (isTinyMCETabActive()) {
-        console.log('TinyMCE tab is active on page load, initializing...');
-        setTimeout(function() {
-            if (!tinyMCEInitialized && document.getElementById('tinyMCEEditor')) {
-                initTinyMCE();
-                tinyMCEInitialized = true;
-            }
-        }, 300);
-    }
-    
-    // Also initialize when tab is clicked/shown
-    if (tinymceTab) {
-        tinymceTab.addEventListener('shown.bs.tab', function (e) {
-            console.log('TinyMCE tab shown event triggered');
-            // Small delay to ensure the tab content is fully visible
-            setTimeout(function() {
-                if (!tinyMCEInitialized && document.getElementById('tinyMCEEditor')) {
-                    initTinyMCE();
-                    tinyMCEInitialized = true;
-                }
-            }, 200);
-        });
-        
-        // Backup: also try to initialize on click
-        tinymceTab.addEventListener('click', function(e) {
-            console.log('TinyMCE tab clicked');
-            setTimeout(function() {
-                if (!tinyMCEInitialized && document.getElementById('tinyMCEEditor')) {
-                    console.log('Initializing TinyMCE after tab click');
-                    initTinyMCE();
-                    tinyMCEInitialized = true;
-                }
-            }, 500);
-        });
-    }
-    
-    // Initialize form submission handler
     const form = document.getElementById('tinyMCEForm');
+    const saveBtn = document.getElementById('saveContentBtn');
+    const importBtn = document.getElementById('importWordBtn');
+
+    if (saveBtn) saveBtn.disabled = true;
+    if (importBtn) importBtn.disabled = true;
+
+    // Initialize when TinyMCE tab is active or clicked
+    if (tinymceTab) {
+        tinymceTab.addEventListener('shown.bs.tab', tryInitTinyMCE);
+        tinymceTab.addEventListener('click', tryInitTinyMCE);
+    }
+
+    // Auto-init on page load
+    setTimeout(function () {
+        if (!tinyMCEInitialized && document.getElementById('tinyMCEEditor')) {
+            console.log('Auto-initializing TinyMCE on page load...');
+            initTinyMCE(saveBtn, importBtn);
+            tinyMCEInitialized = true;
+        }
+    }, 500);
+
+    // Save content trigger
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function () {
             if (tinyMCEInitialized && tinymce.get('tinyMCEEditor')) {
                 tinymce.triggerSave();
             }
         });
     }
+
+    // ====== Dynamic Input Hint ======
+    const unitField = document.getElementById("unit_code");
+    const degreeField = document.getElementById("degree_type_target");
+    const hint = document.getElementById("input-hint");
+
+    function updateHint() {
+        if (!hint || !unitField || !degreeField) return;
+
+        const unit = (unitField.value || "").trim().toUpperCase();
+        const degree = (degreeField.value || "").trim().toLowerCase();
+        const hasUnit = unit && unit !== "ALL" && unit !== "*";
+        const hasDegree = degree === "masters" || degree === "phd";
+
+        if (hasUnit && hasDegree) {
+            hint.innerHTML = "⚠️ You’ve entered both a unit code and a degree type. Only one is needed.";
+            hint.classList.remove("text-muted");
+            hint.classList.add("text-warning");
+        } else if (hasUnit) {
+            hint.innerHTML = "💡 Targeting a specific unit; you can leave degree type blank.";
+            hint.classList.remove("text-warning");
+            hint.classList.add("text-muted");
+        } else if (hasDegree) {
+            hint.innerHTML = "💡 Targeting a degree type; you can leave unit code blank.";
+            hint.classList.remove("text-warning");
+            hint.classList.add("text-muted");
+        } else {
+            hint.innerHTML = "💡 If you’re using a unit code, leave degree type blank — and vice versa.";
+            hint.classList.remove("text-warning");
+            hint.classList.add("text-muted");
+        }
+    }
+
+    if (unitField && degreeField) {
+        unitField.addEventListener("input", updateHint);
+        degreeField.addEventListener("change", updateHint);
+        updateHint();
+    }
 });
 
-function initTinyMCE() {
+// ====== TinyMCE Initialization ======
+function tryInitTinyMCE() {
+    setTimeout(function () {
+        if (!tinyMCEInitialized && document.getElementById('tinyMCEEditor')) {
+            console.log('Initializing TinyMCE (tab event)...');
+            initTinyMCE(
+                document.getElementById('saveContentBtn'),
+                document.getElementById('importWordBtn')
+            );
+            tinyMCEInitialized = true;
+        }
+    }, 300);
+}
+
+function initTinyMCE(saveBtn, importBtn) {
     console.log('Attempting to initialize TinyMCE...');
-    
-    if (!document.getElementById('tinyMCEEditor')) {
-        console.error('TinyMCE editor element not found!');
-        return;
-    }
-    
-    if (typeof tinymce === 'undefined') {
-        console.error('TinyMCE library not loaded!');
-        return;
-    }
-    
+
+    if (!document.getElementById('tinyMCEEditor')) return;
+    if (typeof tinymce === 'undefined') return;
+
     try {
         tinymce.init({
             selector: '#tinyMCEEditor',
             license_key: 'gpl',
-            base_url: '/static/tinymce/js/tinymce',
-            suffix: '.min',
             height: 500,
             menubar: true,
             promotion: false,
@@ -120,97 +143,23 @@ function initTinyMCE() {
             plugins: [
                 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount', 'paste'
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
             ],
-            toolbar: 'undo redo | blocks | ' +
-                'bold italic underline strikethrough | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | forecolor backcolor | link image media | ' +
-                'table | code | fullscreen preview help',
-            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; font-size: 16px; line-height: 1.6; }',
-            
-            images_upload_handler: function (blobInfo, success, failure) {
-                try {
-                    if (!blobInfo || !blobInfo.blob) {
-                        console.warn('Invalid blob info for image upload');
-                        if (failure) failure('Invalid image data');
-                        return;
-                    }
-                    
-                    const reader = new FileReader();
-                    reader.onload = function() {
-                        try {
-                            if (success) success(reader.result);
-                        } catch (error) {
-                            console.error('Error in success callback:', error);
-                            if (failure) failure('Image processing failed');
-                        }
-                    };
-                    reader.onerror = function() {
-                        console.error('FileReader error');
-                        if (failure) failure('Failed to read image file');
-                    };
-                    reader.readAsDataURL(blobInfo.blob());
-                } catch (error) {
-                    console.error('Error in images_upload_handler:', error);
-                    if (failure) failure('Image upload handler error');
-                }
-            },
-            
-            table_default_attributes: {
-                'border': '1',
-                'style': 'border-collapse: collapse; width: 100%;'
-            },
-            table_default_styles: {
-                'border-collapse': 'collapse',
-                'width': '100%'
-            },
-
-            paste_data_images: true,
+            toolbar:
+                'undo redo | blocks | bold italic underline strikethrough | ' +
+                'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | forecolor backcolor | link image media | table | code | fullscreen preview help',
+            content_style:
+                'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; font-size: 16px; line-height: 1.6; }',
             automatic_uploads: false,
-            images_reuse_filename: true,
-            paste_retain_style_properties: "color font-size font-family background-color",
-            paste_remove_styles_if_webkit: false,
-            paste_merge_formats: true,
-            smart_paste: true,
-            paste_word_valid_elements: "b,strong,i,em,h1,h2,h3,h4,h5,h6,p,ol,ul,li,a[href],span,color,font-size,font-color,font-family,mark,table,tr,td,th,tbody,thead,tfoot",
-            
-            paste_preprocess: function(plugin, args) {
-                args.content = args.content.replace(/(&nbsp;\s*){2,}/gi, ' ');
-                args.content = args.content.replace(/<p[^>]*>(\s|&nbsp;)*<\/p>/gi, '');
-                args.content = args.content.replace(/<span style="[^"]*">\s*<\/span>/gi, '');
-                args.content = args.content.replace(/class="Mso[^"]*"/gi, '');
-                args.content = args.content.replace(/<img[^>]*src=["']file:\/\/[^"']*["'][^>]*>/gi, 
-                    '<p><em>[Image from Word document - please re-insert using the image button above]</em></p>');
-                args.content = args.content.replace(/<v:[^>]*>/gi, '');
-                args.content = args.content.replace(/<\/v:[^>]*>/gi, '');
-                args.content = args.content.replace(/<o:[^>]*>/gi, '');
-                args.content = args.content.replace(/<\/o:[^>]*>/gi, '');
-            },
-
             setup: function (editor) {
-                editor.on('change', function () {
-                    editor.save();
+                editor.on('init', function () {
+                    console.log('✅ TinyMCE initialized successfully!');
+                    tinyMCEInitialized = true;
+                    if (saveBtn) saveBtn.disabled = false;
+                    if (importBtn) importBtn.disabled = false;
                 });
-                
-                editor.on('init', function() {
-                    console.log('TinyMCE initialized successfully!');
-                });
-                
-                // Suppress known TinyMCE image upload errors
-                editor.on('ImageUploadError', function(e) {
-                    console.warn('TinyMCE ImageUploadError suppressed:', e);
-                    e.preventDefault();
-                });
-                
-                // Handle any notification errors related to image processing
-                editor.on('BeforeExecCommand', function(e) {
-                    if (e.command === 'mceNotification' && e.value && e.value.text && 
-                        e.value.text.includes('Cannot read properties of undefined')) {
-                        console.warn('Suppressing TinyMCE notification error:', e.value.text);
-                        e.preventDefault();
-                    }
-                });
+                editor.on('change', () => editor.save());
             }
         });
     } catch (error) {
@@ -218,25 +167,26 @@ function initTinyMCE() {
     }
 }
 
+// ====== CLEAR CONTENT ======
 function clearContent() {
     if (!tinyMCEInitialized || !tinymce.get('tinyMCEEditor')) {
         alert('TinyMCE not initialized yet.');
         return;
     }
-    if (confirm('Clear all content? There is no turning back now!')) {
+    if (confirm('Clear all content? This action cannot be undone.')) {
         tinymce.get('tinyMCEEditor').setContent('');
     }
 }
 
+// ====== LOAD SAMPLE CONTENT ======
 function loadSampleContent() {
     if (!tinyMCEInitialized || !tinymce.get('tinyMCEEditor')) {
         alert('TinyMCE not initialized yet.');
         return;
     }
-    const sampleContent = `
+    tinymce.get('tinyMCEEditor').setContent(`
         <h2>Sample Email Content</h2>
         <p>This is a sample email with various formatting options:</p>
-        
         <ul>
             <li><strong>Bold text example</strong></li>
             <li><em>Italic text example</em></li>
@@ -244,170 +194,156 @@ function loadSampleContent() {
             <li><span style="color: #e74c3c;">Colored text in red</span></li>
             <li><span style="background-color: #f1c40f;">Highlighted text</span></li>
         </ul>
-
-        <blockquote style="border-left: 4px solid #3498db; padding-left: 20px; margin: 20px 0; font-style: italic;">
-            This is a blockquote to test formatting capabilities.
-        </blockquote>
-
-        <h3>Code Sample</h3>
-        <pre><code>function hello() {
-    console.log("Hello from TinyMCE!");
-}</code></pre>
-
-        <p><a href="https://www.tinymce.com" target="_blank">Visit TinyMCE Website</a></p>
-    `;
-    tinymce.get('tinyMCEEditor').setContent(sampleContent);
+    `);
 }
 
+// ====== WORD DOC IMPORT HANDLER ======
 function handleWordUpload(input) {
     if (!tinyMCEInitialized || !tinymce.get('tinyMCEEditor')) {
-        alert('TinyMCE not initialized yet. Please click on the TinyMCE tab first.');
+        alert('TinyMCE not initialized yet.');
         return;
     }
-    
+
     const file = input.files[0];
     if (!file) return;
-    
     if (typeof mammoth === 'undefined') {
-        alert('Mammoth.js library not loaded! Please check your script includes.');
+        alert('Mammoth.js library not loaded!');
         return;
     }
-    
+
     const loadingMsg = document.createElement('div');
     loadingMsg.id = 'word-loading';
     loadingMsg.innerHTML = `
-        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                    background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    background: white; padding: 20px; border-radius: 8px; 
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                     border: 2px solid #007bff; z-index: 1000;">
-            <div style="text-align: center;">
-                <div style="border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; 
-                           width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
-                <p>Converting Word document: <strong>${file.name}</strong></p>
-                <p style="font-size: 12px; color: #666;">Processing images and formatting...</p>
-            </div>
-        </div>
-        <style>
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        </style>
-    `;
+            <p>Converting Word document: <strong>${file.name}</strong></p>
+        </div>`;
     document.body.appendChild(loadingMsg);
-    
-    const fileReader = new FileReader();
-    fileReader.onload = function(e) {
-        const arrayBuffer = e.target.result;
-        
-        mammoth.convertToHtml(
-            { arrayBuffer: arrayBuffer },
-            {
-                convertImage: mammoth.images.imgElement(function(image) {
-                    try {
-                        // Check if image and its methods exist
-                        if (!image || typeof image.read !== 'function') {
-                            console.warn('Invalid image object or read method not available');
-                            return Promise.resolve({ 
-                                src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-                                alt: '[Image placeholder]'
-                            });
-                        }
-                        
-                        const readResult = image.read("base64");
-                        
-                        // Check if read method returns a Promise
-                        if (!readResult || typeof readResult.then !== 'function') {
-                            console.warn('Image read method did not return a Promise');
-                            return Promise.resolve({ 
-                                src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-                                alt: '[Image placeholder]'
-                            });
-                        }
-                        
-                        return readResult.then(function(imageBuffer) {
-                            console.log('Image processed successfully');
-                            const dataUrl = `data:${image.contentType || 'image/png'};base64,${imageBuffer}`;
-                            return { 
-                                src: dataUrl,
-                                alt: image.altText || 'Imported image',
-                                // Add attributes to prevent TinyMCE from treating this as an upload
-                                'data-mce-src': dataUrl,
-                                'data-mce-selected': '1'
-                            };
-                        }).catch(function(error) {
-                            console.error('Error processing image:', error);
-                            return Promise.resolve({ 
-                                src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-                                alt: '[Image processing error]'
-                            });
-                        });
-                    } catch (error) {
-                        console.error('Error in convertImage function:', error);
-                        return Promise.resolve({ 
-                            src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-                            alt: '[Image conversion error]'
-                        });
-                    }
-                }),
-                styleMap: [
-                    "p[style-name='Heading 1'] => h1:fresh",
-                    "p[style-name='Heading 2'] => h2:fresh",
-                    "p[style-name='Heading 3'] => h3:fresh",
-                    "p[style-name='Title'] => h1.title:fresh",
-                    "p[style-name='Subtitle'] => h2.subtitle:fresh",
-                    "r[style-name='Strong'] => strong"
-                ]
-            }
-        )
-        .then(function(result) {
-            document.body.removeChild(loadingMsg);
-            
-            if (result.value) {
-                let cleanedHtml = result.value;
-                cleanedHtml = cleanedHtml.replace(/<p>\s*<\/p>/g, '');
-                cleanedHtml = cleanedHtml.replace(/(<\/p>\s*){2,}/g, '</p>');
-                
-                tinymce.get('tinyMCEEditor').setContent(cleanedHtml);
-                
-                let message = `✅ Word document imported successfully!\n\nDocument: ${file.name}`;
-                
-                if (result.messages.length > 0) {
-                    message += `\n\n⚠️ Conversion notes:\n`;
-                    result.messages.forEach(msg => {
-                        message += `• ${msg.message}\n`;
-                    });
-                }
-                
-                alert(message);
-                console.log('Mammoth conversion messages:', result.messages);
-            } else {
-                alert('❌ No content could be extracted from the Word document.');
-            }
-        })
-        .catch(function(error) {
-            if (document.getElementById('word-loading')) {
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        mammoth.convertToHtml({ arrayBuffer: e.target.result })
+            .then(result => {
                 document.body.removeChild(loadingMsg);
-            }
-            console.error('Error converting Word document:', error);
-            
-            // Provide more specific error messages
-            let errorMessage = '❌ Error converting Word document: ';
-            if (error.message && error.message.includes('image')) {
-                errorMessage += 'There was an issue processing images in the document. The text content should still be imported correctly.';
-            } else if (error.message) {
-                errorMessage += error.message;
-            } else {
-                errorMessage += 'Unknown error occurred during conversion.';
-            }
-            
-            alert(errorMessage);
-        });
+                tinymce.get('tinyMCEEditor').setContent(result.value);
+                alert('✅ Word document imported successfully!');
+            })
+            .catch(error => {
+                document.body.removeChild(loadingMsg);
+                alert(`❌ Error converting document: ${error.message}`);
+            });
     };
-    
-    fileReader.onerror = function() {
-        if (document.getElementById('word-loading')) {
-            document.body.removeChild(loadingMsg);
-        }
-        alert('❌ Error reading file. Please try again.');
-    };
-    
-    fileReader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(file);
     input.value = '';
+}
+
+/* ===========================
+   HTMX Integration & Flashes
+   =========================== */
+
+if (!window.__FLASH_HANDLER_BOUND__) {
+  window.__FLASH_HANDLER_BOUND__ = true;
+
+  document.body.addEventListener("htmx:afterOnLoad", (event) => {
+    const xhr = event.detail.xhr;
+    if (!xhr) return;
+    const text = xhr.responseText || "";
+
+    if (text.includes("alert-dismissible")) {
+      const flashContainer = document.getElementById("flash-container");
+      if (!flashContainer) return;
+
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = text;
+      const newAlerts = tempDiv.querySelectorAll(".alert");
+      if (newAlerts.length > 0) {
+        flashContainer.innerHTML = "";
+        newAlerts.forEach(a => flashContainer.appendChild(a));
+        fadeOutFlashes();
+      }
+    }
+  });
+
+  document.body.addEventListener("refresh-flashes", () => {
+    fetch("/admin/_flashes")
+      .then(r => r.text())
+      .then(html => {
+        const fc = document.getElementById("flash-container");
+        if (fc) {
+          fc.innerHTML = html;
+          fadeOutFlashes();
+        }
+      });
+  });
+
+  document.body.addEventListener("htmx:afterSwap", (event) => {
+    if (event.detail.target && event.detail.target.id === "weekly-table-container") {
+      console.log("✅ Weekly content table updated successfully!");
+    }
+  });
+}
+
+/* ===========================
+   Flash fade-out animation
+   =========================== */
+function fadeOutFlashes(delay = 5000) {
+  const alerts = document.querySelectorAll("#flash-container .alert");
+  alerts.forEach(alert => {
+    setTimeout(() => {
+      alert.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+      alert.style.opacity = "0";
+      alert.style.transform = "translateY(-10px)";
+      setTimeout(() => alert.remove(), 600);
+    }, delay);
+  });
+}
+
+/* ===========================
+   Info message below fields
+   =========================== */
+document.addEventListener("DOMContentLoaded", setupInfoMessage);
+document.body.addEventListener("htmx:afterSwap", setupInfoMessage);
+
+function setupInfoMessage() {
+  const unitField = document.querySelector("#unit_code");
+  const degreeSelect = document.querySelector("#degree_type_target");
+  if (!unitField || !degreeSelect) return;
+
+  let note = document.getElementById("targeting-note");
+  if (!note) {
+    note = document.createElement("small");
+    note.id = "targeting-note";
+    note.className = "form-text text-muted mt-1";
+    note.style.display = "block";
+    note.style.fontStyle = "italic";
+    unitField.insertAdjacentElement("afterend", note);
+  }
+
+  const updateHighlight = () => {
+    const unitVal = unitField.value.trim();
+    const degreeVal = degreeSelect.value.trim().toLowerCase();
+
+    if (unitVal && degreeVal && degreeVal !== "none") {
+      note.innerHTML = "⚠️ You’ve entered both a unit code and a degree type. Only one is needed.";
+      note.classList.add("text-warning");
+    } else if (unitVal) {
+      note.innerHTML = "🎯 Targeting a specific <strong>unit</strong>: leave degree type blank.";
+      note.classList.remove("text-warning");
+    } else if (degreeVal && degreeVal !== "none") {
+      note.innerHTML = "🎓 Targeting a <strong>degree type</strong>: leave unit code blank.";
+      note.classList.remove("text-warning");
+    } else {
+      note.innerHTML = `
+        💡 Targeting a specific unit: you can leave <strong>degree type</strong> blank.<br>
+        💡 Targeting by degree type: you can leave <strong>unit code</strong> blank.
+      `;
+      note.classList.remove("text-warning");
+    }
+  };
+
+  updateHighlight();
+  unitField.addEventListener("input", updateHighlight);
+  degreeSelect.addEventListener("change", updateHighlight);
 }

@@ -7,6 +7,8 @@ from .config import Config
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from celery import Celery, Task
+from celery.schedules import crontab
 
 # Since Templates and static arent part of app, this code says to look in Base_dir
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -16,21 +18,43 @@ db = SQLAlchemy()
 mail = Mail()
 csrf = CSRFProtect() 
 migrate = Migrate()
+celery = Celery()
 
 def create_app():
     app = Flask(__name__, 
             template_folder=os.path.join(PROJECT_ROOT, 'templates'),
             static_folder=os.path.join(PROJECT_ROOT, 'static')
         )
+    app.config.update(
+        broker_url="redis://localhost:6379/0",
+        result_backend="redis://localhost:6379/0",
+        task_ignore_result=False,
+        task_serializer="json",
+        accept_content=["json"],
+        result_serializer="json",
+        timezone="Australia/Perth",
+        enable_utc=True,
+        beat_schedule={
+            "run-daily-job": {
+                "task": "app.tasks.daily_progression_check",
+                "schedule": crontab(hour=2, minute=0),
+            },
+        },
+    )
     
+    app.config.from_prefixed_env()  # Loads env vars (e.g., BROKER_URL=... overrides)
+    app.config.from_object(Config)
+
     app.config.from_object(Config)
     db.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
     migrate.init_app(app,db)
+    celery_init_app(app)
 
     with app.app_context(): 
         from . import models
+        from .tasks import daily_progression_check, test_task
         db.create_all()
         
         # Initialize default permissions if they don't exist
@@ -40,10 +64,12 @@ def create_app():
     from .routes_OTP import otp_bp
     from .routes import main_bp
     from .routes_unit import unit_bp 
+    from .routes_webhook import mailchimp_bp
     app.register_blueprint(admin_bp)
     app.register_blueprint(otp_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(unit_bp)
+    app.register_blueprint(mailchimp_bp)
 
     from .services.emailOTP import EmailOTPService
     from .services.mailchimp_service import MailchimpService
@@ -100,4 +126,17 @@ def init_default_permissions():
         # Don't fail startup - let the app run and admin can fix schema
         db.session.rollback()
 
+def celery_init_app(app: Flask) -> Celery:
+    """Configure Celery with Flask app context."""
+    class FlaskTask(Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
 
+    celery_app = Celery(app.name, task_cls=FlaskTask)
+    # Apply config
+    celery.Task = FlaskTask
+    celery.set_default()
+    celery_app.conf.update(app.config)
+    app.extensions["celery"] = celery_app
+    return celery_app

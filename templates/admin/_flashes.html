@@ -1,4 +1,3 @@
-<div id="flash-container" hx-swap-oob="true" hx-swap="innerHTML" class="container mt-3">
   {% with messages = get_flashed_messages(with_categories = true) %}
     {% if messages %}
       {% for category, message in messages %}
@@ -9,4 +8,3 @@
       {% endfor %}
     {% endif %}
   {% endwith %}
-</div>

@@ -1,7 +1,8 @@
+
 from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response, session
-from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm, AssessmentForm
-from .models import Right, Message, User, Reminder, SupportPost, SupportContact, Assessments
-from .check import login_and_rights_required, login_required
+from .forms import ChangeRightForm, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm, WeeklyForm, AssessmentForm
+from .models import Right, Message, User, Reminder, SupportPost, SupportContact, WeeklyContent, Assessments
+from .check import login_and_rights_required
 from . import db
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -17,16 +18,16 @@ def admin_dashboard():
     reminders = Reminder.query.order_by(Reminder.scheduled_at.desc()).all()
     posts = SupportPost.query.order_by(SupportPost.created_at.desc()).all()
     contacts = SupportContact.query.order_by(SupportContact.service_type).all()
+    weekly_records = WeeklyContent.query.order_by(WeeklyContent.created_at.desc()).all()
     assessments = Assessments.query.order_by(Assessments.due_week).all()
 
+
     return render_template("admin/admin_dashboard.html", 
-                           csrf_form=CSRFOnlyForm(),
-                           form=EmailEditor(), 
-                           form_right=ChangeRightForm(),
+                           csrf_form=CSRFOnlyForm(), weekly_form=WeeklyForm(),
+                           form_right=ChangeRightForm(), assessment_form = AssessmentForm(),
                            form_delete=DeleteAccountForm(),
                            msg_form=AdminMessageForm(), rem_form=AdminReminderForm(), post_form=SupportPostForm(), contact_form=SupportContactForm(),
-                           assessment_form=AssessmentForm(),
-                           messages=messages, reminders=reminders, posts=posts, contacts=contacts, assessments=assessments
+                           messages=messages, reminders=reminders, posts=posts, contacts=contacts, records=weekly_records, assessments=assessments
                            )
 
 @admin_bp.post("/admin-dashboard")
@@ -55,8 +56,7 @@ def change_right():
         flash(msg, "success")
         return redirect(url_for("admin.admin_dashboard"))
 
-    email_form = EmailEditor()
-    return render_template("admin/admin_dashboard.html", form=email_form, form_right=form)
+    return redirect(url_for("admin.admin_dashboard"))
 
 @admin_bp.get("/messages/select")
 @login_and_rights_required(1) # Put permission number according(.e.g admin)
@@ -343,63 +343,78 @@ def tinymce_editor():
     """TinyMCE rich text editor page"""
     return render_template("tinyMCE.html")
 
+@admin_bp.get("/_flashes")
+@login_and_rights_required(1)
+def get_flashes():
+    """Return the rendered flash message partial for HTMX updates."""
+    return render_template("admin/_flashes.html")
+
+
 @admin_bp.post("/tinymce-editor")
 @login_and_rights_required(1)
 def save_tinymce_content():
     """Handle TinyMCE form submission"""
-    # Validate CSRF token
-    from flask_wtf.csrf import validate_csrf
+    form = WeeklyForm()
+    # Validate form and CSRF
+    if not form.validate_on_submit():
+        current_app.logger.warning(f"TinyMCE form validation failed: {form.errors}")
+        flash("Form validation failed. Please refreshed and check your inputs.", "danger")
+        if request.headers.get("HX-Request") == "true":
+            html = (
+                render_template("admin/_flashes.html") +
+                render_template("admin/_tinyMCE_tab.html", weekly_form=form, csrf_form=CSRFOnlyForm())
+            )
+            return make_response(html, 422)
+        return redirect(url_for("admin.admin_dashboard"))
+    
     try:
-        validate_csrf(request.form.get('csrf_token'))
-    except Exception:
-        flash("CSRF token validation failed. Please try again.", "error")
-        return redirect(url_for('main.admin_dashboard'))
-    
-    content = request.form.get('content', '')
-    title = request.form.get('title', 'Untitled')
-    degree_code = request.form.get('degree_code', 'GENERAL')
-    week_released = request.form.get('week_released', 1)
-    
-    # Handle new targeting fields
-    scheduled_at = request.form.get('scheduled_at', None)
-    degree_type_target = request.form.get('degree_type_target', None)
-    location_target = request.form.get('location_target', None)
-    stage_target = request.form.get('stage_target', None)
-    
-    # Convert scheduled_at to datetime if provided
-    scheduled_datetime = None
-    if scheduled_at:
-        try:
-            from datetime import datetime
-            scheduled_datetime = datetime.fromisoformat(scheduled_at)
-        except Exception:
-            flash("Invalid datetime format for scheduling.", "warning")
-    
-    # Create message object (you may want to save to database here)
-    message_data = {
-        'title': title,
-        'content': content,
-        'degree_code': degree_code,
-        'week_released': int(week_released) if week_released else 1,
-        'scheduled_at': scheduled_datetime,
-        'degree_type_target': degree_type_target if degree_type_target else None,
-        'location_target': location_target if location_target else None,
-        'stage_target': stage_target if stage_target else None
-    }
-    
-    # Process the content and redirect back
-    targeting_info = []
-    if degree_type_target:
-        targeting_info.append(f"Degree: {degree_type_target}")
-    if location_target:
-        targeting_info.append(f"Location: {location_target}")
-    if stage_target:
-        targeting_info.append(f"Stage: {stage_target}")
-    
-    targeting_str = " | ".join(targeting_info) if targeting_info else "All students"
-    schedule_str = f" | Scheduled: {scheduled_datetime}" if scheduled_datetime else ""
-    
-    flash(f"Content saved! Title: {title} | Targeting: {targeting_str}{schedule_str} | Content length: {len(content)} characters", "success")
-    current_app.logger.info(f"TinyMCE Message Data: {message_data}")
-    
-    return redirect(url_for('admin.admin_dashboard'))
+        raw_unit = (form.unit_code.data or "").strip().upper()
+        raw_degree = (form.degree_type_target.data or "").strip().lower()
+
+        # Prioritize unit_code if both provided
+        if raw_unit and raw_degree and raw_degree not in ("none", "all", ""):
+            flash("Both unit code and degree type filled — using unit code only.", "warning")
+            raw_degree = None
+
+        # Normalize values
+        unit_code_val = (form.unit_code.data or "").strip().upper()
+        unit_code_val = None if unit_code_val in ("", "ALL", "NONE", "*") else unit_code_val
+        degree_type_val = (
+            None
+            if unit_code_val
+            else (form.degree_type_target.data or "").strip().lower()
+        )
+
+        # ====== CREATE ENTRY ======
+        new_entry = WeeklyContent(
+            title=form.title.data.strip(),
+            content=request.form.get("content", "").strip(),
+            unit_code=unit_code_val,
+            degree_type_target=degree_type_val or "All",
+            week_released=form.week_released.data,
+            created_at=datetime.utcnow(),
+            created_by=session.get("uid"),
+        )
+
+        db.session.add(new_entry)
+        db.session.commit()
+
+        flash(f"✅ Weekly content saved for Week {form.week_released.data}", "success")
+
+        # ====== UPDATE WEEKLY TABLE ======
+        weekly_records = WeeklyContent.query.order_by(WeeklyContent.created_at.desc()).all()
+        html = (
+            render_template("admin/_flashes.html") +
+            render_template("admin/_weekly_table.html", records=weekly_records)
+        )
+
+        response = make_response(html)
+        response.headers["HX-Retarget"] = "#weekly-table-container"
+        response.headers["HX-Trigger"] = "refresh-flashes"
+        return response
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error saving WeeklyContent: {e}")
+        flash("Error saving weekly content. Please try again.", "danger")
+        return render_template("admin/_tinyMCE_tab.html", weekly_form=form, csrf_form=CSRFOnlyForm()), 500
