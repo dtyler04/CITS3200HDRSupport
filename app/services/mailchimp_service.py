@@ -82,7 +82,21 @@ class MailchimpService:
         except Exception as e:
             logging.error(f"Unexpected error adding unit tag for {email} - {unit_code}: {e}")
             raise
-
+    
+    def add_degree_type_tag(self, email, degree_type):
+        sub_hash = self._subscriber_hash(email)
+        body = {
+            "tags": [{"name": degree_type, "status": "active"}]
+        }
+        try:
+            return self.client.lists.update_list_member_tags(self.list_id, sub_hash, body)
+        except ApiClientError as e:
+            logging.error(f"Mailchimp API error (add_degree_type_tag) for {email} - {degree_type}: {e.text}")
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error adding degree type tag for {email} - {degree_type}: {e}")
+            raise
+        
     # Use this when a student unenrolls/finishes from a unit
     def remove_unit_tag(self, email, unit_code):
         sub_hash = self._subscriber_hash(email)
@@ -94,4 +108,57 @@ class MailchimpService:
             raise
         except Exception as e:
             logging.error(f"Unexpected error removing unit tag for {email} - {unit_code}: {e}")
+            raise
+
+    def send_weekly_campaign(self, subject, html_content, segment_opts=None):
+        """
+        Create and send a Mailchimp campaign to all subscribers
+        (or a filtered segment if segment_opts provided).
+
+        Args:
+            subject (str): Subject/title of the email.
+            html_content (str): HTML or plain content for the campaign body.
+            segment_opts (dict, optional): Mailchimp segment options
+                                           e.g. filter by tag, location, etc.
+        Returns:
+            campaign_id (str): The ID of the created Mailchimp campaign.
+        """
+        try:
+            # Create the campaign
+            campaign_data = {
+                "type": "regular",
+                "recipients": {
+                    "list_id": self.list_id
+                },
+                "settings": {
+                    "subject_line": subject,
+                    "title": f"HDR Weekly Campaign - {subject}",
+                    "from_name": "HDR Support",
+                    "reply_to": "noreply@hdrsupport.uwa.edu.au"
+                },
+            }
+
+            # If filtering segment (e.g. tag for week number, degree type)
+            if segment_opts:
+                campaign_data["recipients"]["segment_opts"] = segment_opts
+
+            campaign = self.client.campaigns.create(campaign_data)
+            campaign_id = campaign["id"]
+
+            # Add the content
+            self.client.campaigns.set_content(campaign_id, {
+                "html": html_content
+            })
+
+            # Step 3️⃣ – Send immediately
+            self.client.campaigns.send(campaign_id)
+
+            logging.info(f"✅ Weekly campaign '{subject}' sent successfully (ID: {campaign_id})")
+            return campaign_id
+
+        except ApiClientError as e:
+            logging.error(f"❌ Mailchimp API error sending weekly campaign: {e.text}")
+            raise
+        except Exception as e:
+            logging.error(f"❌ Unexpected error sending weekly campaign: {e}")
             raise

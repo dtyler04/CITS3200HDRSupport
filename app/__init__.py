@@ -8,6 +8,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from celery import Celery, Task
+from celery.schedules import crontab
 
 # Since Templates and static arent part of app, this code says to look in Base_dir
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,26 +25,26 @@ def create_app():
             template_folder=os.path.join(PROJECT_ROOT, 'templates'),
             static_folder=os.path.join(PROJECT_ROOT, 'static')
         )
-    app.config.from_mapping(
-        CELERY = dict(
-            broker_url="redis://localhost:6379/0",
-            result_backend="redis://localhost:6379/0",
-            task_ignore_result=False,
-            task_serializer="json",
-            accept_content=["json"],
-            result_serializer="json",
-            timezone="Australia/Perth",
-            enable_utc=True,
-            beat_schedule={
-                "send-weekly-mailchimp": {
-                    "task": "app.tasks.mailchimp_tasks.send_weekly_digest",
-                    "schedule": 60.0 * 60 * 24 * 7,  # every 7 days
-                },
+    app.config.update(
+        broker_url="redis://localhost:6379/0",
+        result_backend="redis://localhost:6379/0",
+        task_ignore_result=False,
+        task_serializer="json",
+        accept_content=["json"],
+        result_serializer="json",
+        timezone="Australia/Perth",
+        enable_utc=True,
+        beat_schedule={
+            "run-daily-job": {
+                "task": "app.tasks.daily_progression_check",
+                "schedule": crontab(hour=2, minute=0),
             },
-        )
+        },
     )
-    app.config.from_prefixed_env()
     
+    app.config.from_prefixed_env()  # Loads env vars (e.g., BROKER_URL=... overrides)
+    app.config.from_object(Config)
+
     app.config.from_object(Config)
     db.init_app(app)
     mail.init_app(app)
@@ -53,6 +54,7 @@ def create_app():
 
     with app.app_context(): 
         from . import models
+        from .tasks import daily_progression_check, test_task
         db.create_all()
         
         # Initialize default permissions if they don't exist
@@ -135,5 +137,6 @@ def celery_init_app(app: Flask) -> Celery:
     # Apply config
     celery.Task = FlaskTask
     celery.set_default()
+    celery_app.conf.update(app.config)
     app.extensions["celery"] = celery_app
     return celery_app

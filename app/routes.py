@@ -73,6 +73,7 @@ def signup():
                 "last_name": signup_form.last_name.data,
                 "email": signup_form.email.data,
                 "password": signup_form.password.data,  
+                "degree_type": signup_form.degree_type.data,
                 "degree_code": signup_form.degree_code.data,
                 "location": signup_form.location.data,
                 "enrollment_status": signup_form.enrollment_status.data,

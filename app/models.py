@@ -350,7 +350,7 @@ class WeeklyContent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    unit_code = db.Column(db.String(50), nullable=False, default=None) # e.g. CITS3001,etc or None
+    unit_code = db.Column(db.String(50), nullable=True, default=None) # e.g. CITS3001,etc or None
     degree_type_target = db.Column(db.String(50), nullable=True)  # Masters, PhD or None.
     week_released = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

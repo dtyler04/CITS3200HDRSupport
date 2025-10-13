@@ -377,11 +377,12 @@ def save_tinymce_content():
             raw_degree = None
 
         # Normalize values
-        unit_code_val = raw_unit if raw_unit not in ("", "ALL", "NONE", "*") else None
+        unit_code_val = (form.unit_code.data or "").strip().upper()
+        unit_code_val = None if unit_code_val in ("", "ALL", "NONE", "*") else unit_code_val
         degree_type_val = (
             None
             if unit_code_val
-            else (raw_degree.capitalize() if raw_degree not in ("", "none", "*") else "All")
+            else (form.degree_type_target.data or "").strip().lower()
         )
 
         # ====== CREATE ENTRY ======

@@ -31,7 +31,16 @@ class Config:
     # TinyMCE Configuration
     TINYMCE_LICENSE_KEY = os.getenv("TINYMCE_LICENSE_KEY", "gpl")
 
-
+    # Celery
+    broker_url = os.environ.get('BROKER_URL') or 'redis://localhost:6379/0'
+    result_backend = os.environ.get('RESULT_BACKEND') or 'redis://localhost:6379/0'
+    task_ignore_result = False
+    task_serializer = 'json'
+    accept_content = ['json']
+    result_serializer = 'json'
+    timezone = 'Australia/Perth'
+    enable_utc = True
+    
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
