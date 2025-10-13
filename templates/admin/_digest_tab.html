@@ -1,0 +1,363 @@
+<div class="row">
+  <div class="col-12">
+    <h4>Weekly Digest Management</h4>
+    <p class="text-muted">Manage automated weekly digest emails sent to HDR students every Monday.</p>
+    
+    <!-- Scheduler Status Card -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-clock"></i> Scheduler Status
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="scheduler-status">
+          <p><i class="fas fa-spinner fa-spin"></i> Loading status...</p>
+        </div>
+        
+        <div class="btn-group mt-3" role="group">
+          <button type="button" class="btn btn-success" id="start-scheduler-btn">
+            <i class="fas fa-play"></i> Start Scheduler
+          </button>
+          <button type="button" class="btn btn-warning" id="stop-scheduler-btn">
+            <i class="fas fa-stop"></i> Stop Scheduler
+          </button>
+          <button type="button" class="btn btn-info" id="refresh-status-btn">
+            <i class="fas fa-refresh"></i> Refresh Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Actions Card -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-paper-plane"></i> Manual Actions
+        </h5>
+      </div>
+      <div class="card-body">
+        <p>Send digest emails immediately or preview them for testing.</p>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <button type="button" class="btn btn-primary btn-lg w-100" id="send-digest-now-btn">
+              <i class="fas fa-envelope"></i> Send All Digests Now
+            </button>
+            <small class="text-muted d-block mt-2">
+              Sends weekly digest emails to all eligible students immediately
+            </small>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="input-group mb-3">
+              <input type="number" class="form-control" id="preview-user-id" placeholder="User ID">
+              <input type="number" class="form-control" id="preview-week" placeholder="Week (optional)">
+              <button class="btn btn-outline-secondary" type="button" id="preview-digest-btn">
+                <i class="fas fa-eye"></i> Preview
+              </button>
+            </div>
+            <small class="text-muted d-block">
+              Preview digest email for a specific user and week
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Results -->
+    <div class="card d-none" id="preview-card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-eye"></i> Digest Preview
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="preview-content">
+          <!-- Preview content will be loaded here -->
+        </div>
+        <div class="mt-3">
+          <button type="button" class="btn btn-success" id="view-html-btn" style="display: none;">
+            <i class="fas fa-code"></i> View Full HTML
+          </button>
+          <button type="button" class="btn btn-secondary" id="close-preview-btn">
+            <i class="fas fa-times"></i> Close Preview
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-info-circle"></i> System Information
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>How Weekly Digest Works:</h6>
+            <ul class="small">
+              <li>Emails are sent every Monday at 9:00 AM</li>
+              <li>Students receive messages scheduled for their current week</li>
+              <li>Messages are personalized with student details</li>
+              <li>Only verified users receive digest emails</li>
+              <li>Messages are filtered by degree code and targeting</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h6>Message Targeting:</h6>
+            <ul class="small">
+              <li><strong>Degree Code:</strong> Must match student's degree</li>
+              <li><strong>Week Released:</strong> Must match student's current week</li>
+              <li><strong>Degree Type:</strong> Filtered if specified (PhD, Masters, etc.)</li>
+              <li><strong>Location:</strong> Filtered if specified (Perth, Albany, etc.)</li>
+              <li><strong>Stage:</strong> Filtered if specified (Coursework, Thesis, etc.)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load initial status
+    loadSchedulerStatus();
+    
+    // Event listeners
+    document.getElementById('start-scheduler-btn').addEventListener('click', startScheduler);
+    document.getElementById('stop-scheduler-btn').addEventListener('click', stopScheduler);
+    document.getElementById('refresh-status-btn').addEventListener('click', loadSchedulerStatus);
+    document.getElementById('send-digest-now-btn').addEventListener('click', sendDigestNow);
+    document.getElementById('preview-digest-btn').addEventListener('click', previewDigest);
+    document.getElementById('close-preview-btn').addEventListener('click', closePreview);
+    document.getElementById('view-html-btn').addEventListener('click', viewFullHTML);
+    
+    function loadSchedulerStatus() {
+        const statusDiv = document.getElementById('scheduler-status');
+        statusDiv.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Loading status...</p>';
+        
+        fetch('/admin/weekly-digest/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const status = data.data;
+                    let statusHtml = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Status:</strong> 
+                                    <span class="badge ${status.is_running ? 'bg-success' : 'bg-danger'}">
+                                        ${status.is_running ? 'Running' : 'Stopped'}
+                                    </span>
+                                </p>
+                                <p><strong>Active Jobs:</strong> ${status.jobs.length}</p>
+                            </div>
+                            <div class="col-md-6">
+                    `;
+                    
+                    if (status.jobs.length > 0) {
+                        statusHtml += '<p><strong>Next Scheduled Run:</strong></p><ul class="small">';
+                        status.jobs.forEach(job => {
+                            const nextRun = job.next_run ? new Date(job.next_run).toLocaleString() : 'Not scheduled';
+                            statusHtml += `<li>${job.interval} ${job.unit}: ${nextRun}</li>`;
+                        });
+                        statusHtml += '</ul>';
+                    } else {
+                        statusHtml += '<p class="text-muted">No scheduled jobs</p>';
+                    }
+                    
+                    statusHtml += '</div></div>';
+                    statusDiv.innerHTML = statusHtml;
+                } else {
+                    statusDiv.innerHTML = `<p class="text-danger">Error loading status: ${data.error}</p>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+            });
+    }
+    
+    function startScheduler() {
+        const btn = document.getElementById('start-scheduler-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+        
+        fetch('/admin/weekly-digest/start', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadSchedulerStatus();
+                    showAlert('Scheduler started successfully!', 'success');
+                } else {
+                    showAlert(`Failed to start scheduler: ${data.error}`, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert(`Error: ${error.message}`, 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> Start Scheduler';
+            });
+    }
+    
+    function stopScheduler() {
+        const btn = document.getElementById('stop-scheduler-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
+        
+        fetch('/admin/weekly-digest/stop', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadSchedulerStatus();
+                    showAlert('Scheduler stopped successfully!', 'warning');
+                } else {
+                    showAlert(`Failed to stop scheduler: ${data.error}`, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert(`Error: ${error.message}`, 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-stop"></i> Stop Scheduler';
+            });
+    }
+    
+    function sendDigestNow() {
+        if (!confirm('Are you sure you want to send digest emails to all users now?')) {
+            return;
+        }
+        
+        const btn = document.getElementById('send-digest-now-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        
+        fetch('/admin/weekly-digest/send-now', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const result = data.data;
+                    showAlert(`Digest emails sent! Successful: ${result.sent}, Errors: ${result.errors}`, 'success');
+                } else {
+                    showAlert(`Failed to send digest: ${data.error}`, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert(`Error: ${error.message}`, 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-envelope"></i> Send All Digests Now';
+            });
+    }
+    
+    function previewDigest() {
+        const userId = document.getElementById('preview-user-id').value;
+        const week = document.getElementById('preview-week').value;
+        
+        if (!userId) {
+            showAlert('Please enter a User ID', 'warning');
+            return;
+        }
+        
+        const btn = document.getElementById('preview-digest-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        let url = `/admin/weekly-digest/preview/${userId}`;
+        if (week) {
+            url += `?week=${week}`;
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showPreview(data.data);
+                } else {
+                    showAlert(`Preview error: ${data.error}`, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert(`Error: ${error.message}`, 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+            });
+    }
+    
+    function showPreview(previewData) {
+        const previewCard = document.getElementById('preview-card');
+        const previewContent = document.getElementById('preview-content');
+        const viewHtmlBtn = document.getElementById('view-html-btn');
+        
+        let contentHtml = `
+            <h6>Preview for ${previewData.user_email}</h6>
+            <p><strong>Subject:</strong> ${previewData.subject}</p>
+            <p><strong>Current Week:</strong> ${previewData.current_week}</p>
+            <p><strong>Messages:</strong> ${previewData.message_count}</p>
+        `;
+        
+        if (previewData.message_count > 0) {
+            contentHtml += '<div class="mt-3"><h6>Messages in this digest:</h6><ul>';
+            previewData.messages.forEach(msg => {
+                contentHtml += `<li><strong>${msg.title}</strong> (Week ${msg.week_released})</li>`;
+            });
+            contentHtml += '</ul></div>';
+            
+            viewHtmlBtn.style.display = 'inline-block';
+            viewHtmlBtn.onclick = () => viewFullHTML(previewData.user_email.split('@')[0], previewData.current_week);
+        } else {
+            contentHtml += '<p class="text-muted">No messages found for this week.</p>';
+            viewHtmlBtn.style.display = 'none';
+        }
+        
+        previewContent.innerHTML = contentHtml;
+        previewCard.classList.remove('d-none');
+        previewCard.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function viewFullHTML() {
+        const userId = document.getElementById('preview-user-id').value;
+        const week = document.getElementById('preview-week').value;
+        
+        let url = `/admin/weekly-digest/preview/${userId}/html`;
+        if (week) {
+            url += `?week=${week}`;
+        }
+        
+        window.open(url, '_blank');
+    }
+    
+    function closePreview() {
+        document.getElementById('preview-card').classList.add('d-none');
+    }
+    
+    function showAlert(message, type) {
+        // Create alert element
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at top of digest tab
+        const digestTab = document.getElementById('digest');
+        digestTab.insertBefore(alert, digestTab.firstChild);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+});
+</script>

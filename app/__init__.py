@@ -47,8 +47,16 @@ def create_app():
 
     from .services.emailOTP import EmailOTPService
     from .services.mailchimp_service import MailchimpService
+    from .services.scheduled_task_manager import task_manager
     app.extensions['email_otp']=EmailOTPService(mail)
     app.extensions['mailchimp']=MailchimpService()
+    
+    # Initialize the weekly digest scheduler
+    try:
+        task_manager.start_scheduler()
+        app.logger.info("Weekly digest scheduler started successfully")
+    except Exception as e:
+        app.logger.error(f"Failed to start weekly digest scheduler: {e}")
 
     from . import routes
 

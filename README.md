@@ -65,39 +65,125 @@ Due to messages and reminders not being suited to the specific needs of each HDR
 * ($5)
 * This is a page within the administrator dashboard which has useful insights such as page visits, active users, login times and button clicks. This will allow HDR support staff to better cater messages and relevent support infomration to students based on their needs.
 
+### 9. Weekly Digest Email System
+* ($15)
+* Automated weekly digest emails sent every Monday morning to all verified HDR students
+* Collects all messages scheduled for the student's current week in their candidature
+* Messages are personalized with student-specific details (name, degree type, location, etc.)
+* Uses MailChimp for professional email delivery with HTML templates
+* Includes message targeting based on degree code, type, location, and study stage
+* Admin dashboard provides scheduler management, manual sending, and preview capabilities
+* Background task scheduler handles automatic Monday morning delivery
+* Comprehensive error handling and logging for reliable operation
+
+## Weekly Digest System Architecture
+
+### Components:
+1. **WeeklyDigestService** (`app/services/weekly_digest_service.py`)
+   - Core logic for collecting and personalizing messages
+   - Calculates student's current week in candidature
+   - Filters messages based on targeting criteria
+   - Generates personalized email content
+
+2. **ScheduledTaskManager** (`app/services/scheduled_task_manager.py`)
+   - Handles automatic scheduling using the `schedule` library
+   - Runs background thread for Monday morning email delivery
+   - Provides start/stop controls and status monitoring
+
+3. **MailChimpService** (`app/services/mailchimp_service.py`)
+   - Extended with digest email functionality
+   - Creates HTML email templates with CSS styling
+   - Handles MailChimp campaign creation and sending
+
+4. **Admin Dashboard Integration**
+   - New "Weekly Digest" tab in admin interface
+   - Real-time scheduler status monitoring
+   - Manual digest sending for testing
+   - User-specific preview functionality
+   - Comprehensive system information display
+
+### Email Targeting Logic:
+- **Primary Filter**: Student's current week must match message's `week_released`
+- **Degree Code**: Must match student's enrolled degree
+- **Optional Targeting**: Messages can specify degree type, location, or study stage
+- **Personalization**: Student details dynamically inserted into message content
+
+### Scheduling:
+- Automatic delivery every Monday at 9:00 AM
+- Only verified users receive digest emails
+- Background process continues running independently
+- Admin controls for starting/stopping scheduler
+- Manual override for immediate sending
+
 ## Github Directory Structure
 <pre>
-CITS3200HDRSupport
+CITS3200HDRSupport/
 ├── .gitignore
 ├── HowToVenv.md
+├── init_enrollment_history.py
 ├── License
 ├── README.md
-├── Sprint_1_Tests
-│   ├── Test_A.py
-│   └── Test_C.py
-├── app
-│   ├── .env
+├── requirements.txt
+├── run.py
+├── SETUP.md
+├── style.md
+├── test_weekly_digest.py
+├── app/
 │   ├── __init__.py
+│   ├── app.db
 │   ├── check.py
 │   ├── config.py
 │   ├── forms.py
 │   ├── models.py
-│   ├── routes.py
-│   ├── routes_OTP.py
 │   ├── routes_admin.py
-│   └── services
-│       ├── __pycache__
+│   ├── routes_OTP.py
+│   ├── routes_unit.py
+│   ├── routes_webhook.py
+│   ├── routes.py
+│   ├── __pycache__/
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── check.cpython-312.pyc
+│   │   ├── config.cpython-312.pyc
+│   │   ├── forms.cpython-312.pyc
+│   │   ├── models.cpython-312.pyc
+│   │   ├── routes_admin.cpython-312.pyc
+│   │   ├── routes_OTP.cpython-312.pyc
+│   │   ├── routes_unit.cpython-312.pyc
+│   │   └── routes.cpython-312.pyc
+│   └── services/
 │       ├── emailOTP.py
-│       └── mailchimp_service.py
-├── instance
-├── requirements.txt
-├── static
-│   ├── .gitkeep
-│   ├── email_editor.css
-│   ├── email_editor.js
+│       ├── mailchimp_service.py
+│       ├── message_personalisation.py
+│       ├── scheduled_task_manager.py
+│       ├── weekly_digest_service.py
+│       └── __pycache__/
+│           ├── emailOTP.cpython-312.pyc
+│           └── mailchimp_service.cpython-312.pyc
+├── logs/
+│   └── app.log
+├── migrations/
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   ├── __pycache__/
+│   │   └── env.cpython-312.pyc
+│   └── versions/
+│       ├── fix_admin_column_name.py
+│       └── __pycache__/
+│           ├── c411f3e91be1_add_title_to_messages.cpython-312.pyc
+│           └── fix_admin_column_name.cpython-312.pyc
+├── Sprint_1_Tests/
+│   ├── Test_A.py
+│   └── Test_C.py
+├── static/
+│   ├── admin_dashboard.js
+│   ├── detectmobilebroswer.js
 │   ├── favicon.ico
-│   ├── fonts
-│   │   └── SchussSlabPro
+│   ├── style.css
+│   ├── tinymce.js
+│   ├── fonts/
+│   │   └── SchussSlabPro/
 │   │       ├── SchussSlabPro-Bold.eot
 │   │       ├── SchussSlabPro-Bold.ttf
 │   │       ├── SchussSlabPro-Bold.woff
@@ -139,21 +225,138 @@ CITS3200HDRSupport
 │   │       ├── SchussSlabPro-Regular.woff
 │   │       ├── SchussSlabPro-Regular.woff2
 │   │       └── stylesheet.css
-│   └── style.css
-├── style.md
-├── templates
-│   ├── admin_dashboard.html
+│   └── tinymce/
+│       ├── CHANGELOG.md
+│       └── js/
+├── templates/
+│   ├── assessment_dates.html
 │   ├── base.html
-│   ├── email_editor.html
 │   ├── login.html
+│   ├── manage_users.html
+│   ├── profile.html
+│   ├── reset_password.html
 │   ├── select_message.html
 │   ├── signup.html
 │   ├── student_dashboard.html
+│   ├── update_enrollment.html
+│   ├── update_password.html
+│   ├── user_stats.html
+│   ├── verify_email.html
+│   ├── verify_password.html
 │   ├── weekly_email.html
-│   └── welcome.html
-├── tests
-│   └── .gitkeep
+│   ├── welcome.html
+│   └── admin/
+│       ├── _assessments_tab.html
+│       ├── _compose_tab.html
+│       ├── _digest_tab.html
+│       ├── _flashes.html
+│       ├── _forms.html
+│       ├── _history.html
+│       ├── _rights_tab.html
+│       ├── _support_content.html
+│       ├── _tinyMCE_tab.html
+│       └── admin_dashboard.html
+├── tests/
+│   ├── test_create_user_fr.py
+│   ├── test_create_user.py
+│   └── __pycache__/
+│       ├── test_create_user_fr.cpython-312.pyc
+│       └── test_create_user.cpython-312.pyc
 </pre>
+
+## Installation and Setup
+
+### Prerequisites
+- Python 3.12+
+- MailChimp API credentials
+- Flask development environment
+
+### Quick Start
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd CITS3200HDRSupport
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment variables**
+   Create a `.env` file in the `app/` directory:
+   ```env
+   SECRET_KEY=your-secret-key
+   MAILCHIMP_API_KEY=your-mailchimp-api-key
+   MAILCHIMP_SERVER_PREFIX=your-server-prefix
+   DATABASE_URL=sqlite:///app.db
+   ```
+
+4. **Initialize the database**
+   ```bash
+   flask db upgrade
+   ```
+
+5. **Run the application**
+   ```bash
+   python run.py
+   ```
+
+### Weekly Digest System Setup
+
+#### 1. MailChimp Configuration
+- Obtain MailChimp API key from your MailChimp account
+- Set `MAILCHIMP_API_KEY` and `MAILCHIMP_SERVER_PREFIX` in your environment
+- Ensure MailChimp account has permission to create campaigns
+
+#### 2. Test the System
+Run the test script to verify all components:
+```bash
+python test_weekly_digest.py
+```
+
+#### 3. Admin Dashboard Management
+1. Login as an admin user (permission level 1)
+2. Navigate to the "Weekly Digest" tab in the admin dashboard
+3. Start the scheduler to enable automatic Monday morning emails
+4. Use preview functionality to test with real user data
+
+#### 4. Message Creation for Digest
+When creating messages in the admin dashboard:
+- Set `week_released` to specify which week students should receive the message
+- Use targeting fields to filter by degree type, location, or study stage
+- Messages are automatically included in weekly digests based on these criteria
+
+#### 5. Scheduler Management
+- **Start Scheduler**: Enables automatic Monday 9:00 AM email delivery
+- **Stop Scheduler**: Disables automatic delivery
+- **Send Now**: Manually trigger digest emails for testing
+- **Preview**: Test digest content for specific users and weeks
+
+#### 6. Monitoring and Logs
+- Application logs are stored in `logs/app.log`
+- Weekly digest operations are logged with detailed information
+- Admin dashboard shows real-time scheduler status
+
+### API Endpoints
+
+#### Weekly Digest Management
+- `GET /admin/weekly-digest/status` - Get scheduler status
+- `POST /admin/weekly-digest/start` - Start the scheduler
+- `POST /admin/weekly-digest/stop` - Stop the scheduler
+- `POST /admin/weekly-digest/send-now` - Manual digest sending
+- `GET /admin/weekly-digest/preview/<user_id>` - Preview digest for user
+- `GET /admin/weekly-digest/preview/<user_id>/html` - View digest HTML
+
+#### Student Dashboard
+- `GET /student-dashboard` - Main student interface with timeline
+- `GET /api/timeline-data` - Student progression data
+- `GET /api/assessments` - Assessment dates and details
+
+#### User Management
+- `POST /signup` - User registration
+- `POST /login` - User authentication
+- `POST /admin/change_right` - Modify user permissions
 
 ## Client
  * Name: Jo Edmonston

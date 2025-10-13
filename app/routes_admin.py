@@ -1,8 +1,10 @@
-from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response, session
+from flask import Blueprint, request, redirect, url_for, flash, render_template, current_app, send_from_directory, make_response, session, jsonify
 from .forms import ChangeRightForm, EmailEditor, DeleteAccountForm, AdminMessageForm, AdminReminderForm, SupportPostForm, SupportContactForm, CSRFOnlyForm, AssessmentForm
 from .models import Right, Message, User, Reminder, SupportPost, SupportContact, Assessments
 from .check import login_and_rights_required, login_required
 from . import db
+from .services.weekly_digest_service import WeeklyDigestService
+from .services.scheduled_task_manager import task_manager
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import random, os
@@ -401,5 +403,125 @@ def save_tinymce_content():
     
     flash(f"Content saved! Title: {title} | Targeting: {targeting_str}{schedule_str} | Content length: {len(content)} characters", "success")
     current_app.logger.info(f"TinyMCE Message Data: {message_data}")
-    
+
     return redirect(url_for('admin.admin_dashboard'))
+
+# Weekly Digest Management Routes
+
+@admin_bp.get("/weekly-digest/status")
+@login_and_rights_required(1)
+def weekly_digest_status():
+    """Get status of the weekly digest scheduler."""
+    try:
+        schedule_info = task_manager.get_schedule_info()
+        return jsonify({
+            "success": True,
+            "data": schedule_info
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@admin_bp.post("/weekly-digest/start")
+@login_and_rights_required(1)
+def start_weekly_digest():
+    """Start the weekly digest scheduler."""
+    try:
+        task_manager.start_scheduler()
+        flash("Weekly digest scheduler started successfully!", "success")
+        return jsonify({
+            "success": True,
+            "message": "Scheduler started"
+        })
+    except Exception as e:
+        flash(f"Failed to start scheduler: {e}", "error")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@admin_bp.post("/weekly-digest/stop")
+@login_and_rights_required(1)
+def stop_weekly_digest():
+    """Stop the weekly digest scheduler."""
+    try:
+        task_manager.stop_scheduler()
+        flash("Weekly digest scheduler stopped successfully!", "success")
+        return jsonify({
+            "success": True,
+            "message": "Scheduler stopped"
+        })
+    except Exception as e:
+        flash(f"Failed to stop scheduler: {e}", "error")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@admin_bp.post("/weekly-digest/send-now")
+@login_and_rights_required(1)
+def send_weekly_digest_now():
+    """Manually trigger weekly digest emails immediately."""
+    try:
+        result = task_manager.run_weekly_digest_now()
+        flash(f"Weekly digest sent! Emails sent: {result['sent']}, Errors: {result['errors']}", "success")
+        return jsonify({
+            "success": True,
+            "data": result
+        })
+    except Exception as e:
+        flash(f"Failed to send weekly digest: {e}", "error")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@admin_bp.get("/weekly-digest/preview/<int:user_id>")
+@login_and_rights_required(1)
+def preview_weekly_digest(user_id):
+    """Preview weekly digest for a specific user."""
+    try:
+        week_override = request.args.get('week', type=int)
+        
+        digest_service = WeeklyDigestService()
+        preview_data = digest_service.preview_digest_for_user(user_id, week_override)
+        
+        if "error" in preview_data:
+            return jsonify({
+                "success": False,
+                "error": preview_data["error"]
+            }), 400
+        
+        return jsonify({
+            "success": True,
+            "data": preview_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@admin_bp.get("/weekly-digest/preview/<int:user_id>/html")
+@login_and_rights_required(1)
+def preview_weekly_digest_html(user_id):
+    """Preview weekly digest HTML for a specific user."""
+    try:
+        week_override = request.args.get('week', type=int)
+        
+        digest_service = WeeklyDigestService()
+        preview_data = digest_service.preview_digest_for_user(user_id, week_override)
+        
+        if "error" in preview_data:
+            flash(f"Preview error: {preview_data['error']}", "error")
+            return redirect(url_for('admin.admin_dashboard'))
+        
+        # Return the HTML content directly for viewing
+        return preview_data["html_content"]
+        
+    except Exception as e:
+        flash(f"Failed to generate preview: {e}", "error")
+        return redirect(url_for('admin.admin_dashboard'))
