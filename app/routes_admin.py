@@ -24,10 +24,10 @@ def admin_dashboard():
 
     return render_template("admin/admin_dashboard.html", 
                            csrf_form=CSRFOnlyForm(), weekly_form=WeeklyForm(),
-                           form_right=ChangeRightForm(),
+                           form_right=ChangeRightForm(), assessment_form = AssessmentForm(),
                            form_delete=DeleteAccountForm(),
                            msg_form=AdminMessageForm(), rem_form=AdminReminderForm(), post_form=SupportPostForm(), contact_form=SupportContactForm(),
-                           messages=messages, reminders=reminders, posts=posts, contacts=contacts, records=weekly_records, assessments=AssessmentForm()
+                           messages=messages, reminders=reminders, posts=posts, contacts=contacts, records=weekly_records, assessments=assessments
                            )
 
 @admin_bp.post("/admin-dashboard")

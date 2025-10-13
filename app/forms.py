@@ -156,7 +156,6 @@ class ResetPasswordForm(FlaskForm):
     )
     submit = SubmitField("Update Password")
 
-<<<<<<< HEAD
 class WeeklyForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired(), Length(max=200)])
     unit_code = StringField('Unit Code', validators=[Optional(), UnitListValidator(max_units=20)], render_kw={'placeholder': 'Enter a single unit code e.g. CITS3001 or all'})
@@ -185,7 +184,7 @@ class WeeklyForm(FlaskForm):
             return False
 
         return True
-=======
+
 class EnrollmentUpdateForm(FlaskForm):
     """Form for students to update their enrollment status"""
     study_mode = SelectField(
@@ -238,4 +237,3 @@ class AssessmentForm(FlaskForm):
         render_kw={'placeholder': 'Week number (1-52)'}
     )
     submit = SubmitField('Create Assessment')
->>>>>>> origin
