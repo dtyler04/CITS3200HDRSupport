@@ -134,7 +134,7 @@ class MailchimpService:
                     "subject_line": subject,
                     "title": f"HDR Weekly Campaign - {subject}",
                     "from_name": "HDR Support",
-                    "reply_to": "noreply@hdrsupport.uwa.edu.au"
+                    "reply_to": "darcy.tyler030304@gmail.com"
                 },
             }
 
